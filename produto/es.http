@@ -1,0 +1,77 @@
+Get http://localhost:9200
+
+## Crie um indice no elastic search
+Put http://localhost:9200/nome-do-indece
+Content-Type: application/json
+
+{
+  "settings": {
+    "number_of_shards": 3,
+    ## "number_of_replicas": 2
+  },
+  "mappings": {
+    "properties": {
+        "name": {
+            "type": "text"
+        },
+        "price": {
+            "type": "float"
+        }
+    }
+  }
+}
+
+
+### para deletar todo o indici
+DELETE http://localhost:9200/nome-do-indece
+
+
+## Insira um documento no indices
+POST http://localhost:9200/nome-do-indece/_doc
+Content-Type: application/json
+
+{
+    "name": "chocolate",
+    "price": 13.40
+}
+
+### Consulte o documento inserido
+GET http://{{host}}/aula/_doc/--omepABEyUXykQzS0l7
+
+### Atualize o documento inserido
+POST http://{{host}}/aula/_update/--omepABEyUXykQzS0l7
+Content-Type: application/json
+
+{
+  "doc": {
+    "idade": 26
+  }
+}
+
+### Filtrar documentos
+POST http://{{host}}/aula/_search
+Content-Type: application/json
+
+{
+  "query": {
+    "match": {
+      "nome": "João"
+    }
+  }
+}
+
+### Filtrar todos os documentos
+POST http://{{host}}/aula/_search
+Content-Type: application/json
+
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+###
+GET http://{{host}}/aula/_doc/f927df06-364d-47da-89dd-87bb51592010
+
+### Excluir um documento
+DELETE http://{{host}}/aula/_doc/--omepABEyUXykQzS0l7
