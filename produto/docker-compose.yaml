@@ -3,7 +3,10 @@ version: "3"
 services:
   elasticsearch:
     image: elasticsearch:7.17.7
+    container_name: elasticsearch
+    restart: always
     environment:
+      - xpack.security.enabled=false #desativar segurança
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ports:
@@ -14,7 +17,9 @@ services:
           memory: 700m
 
   kibana:
-    image: kibana:7.17.1
+    image: kibana:7.17.7
+    container_name: kibana
+    restart: always
     ports:
       - 5601:5601
     environment:
@@ -26,11 +31,11 @@ services:
         limits:
           memory: 700m
 
-  app:
-    build: .
-    container_name: node
-    restart: always
-    ports:
-      - 3333:3333
-    volumes:
-      - .:/usr/app
+  # app:
+  #   build: .
+  #   container_name: node
+  #   restart: always
+  #   ports:
+  #     - 3333:3333
+  #   volumes:
+  #     - .:/usr/app
