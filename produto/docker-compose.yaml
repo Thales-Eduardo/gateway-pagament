@@ -31,6 +31,23 @@ services:
         limits:
           memory: 700m
 
+  mysql:
+    image: mysql:8.0.30-debian
+    environment:
+      - MYSQL_DATABASE=micro_payment
+      - MYSQL_USER=randomuser
+      - MYSQL_PASSWORD=randompassword
+      - MYSQL_ROOT_PASSWORD=randomrootpassword
+    container_name: mysql
+    restart: always
+    ports:
+      - 33060:3306
+    # volumes:
+    #   - ./.docker/mysql:/docker-entrypoint-initdb.d
+    tmpfs: # aquivos inteiros na memoria ram para melhorar velocidade de leitura
+      - /var/lib/mysql
+    security_opt:
+      - seccomp:unconfined
   # app:
   #   build: .
   #   container_name: node
