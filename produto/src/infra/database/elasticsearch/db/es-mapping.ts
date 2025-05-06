@@ -1,7 +1,7 @@
 import { MappingTypeMapping } from "@elastic/elasticsearch/lib/api/types";
 
 export const esMapping: MappingTypeMapping = {
-  dynamic: true, //campos que não estão mapeados previamente serão criados automaticamente
+  dynamic: true, //campos que não estão mapeados previamente, serão criados automaticamente
   //   _source: { enabled: true },
   //   dynamic_date_formats: [
   //     "yyyy-MM-dd",
@@ -15,12 +15,11 @@ export const esMapping: MappingTypeMapping = {
     id: {
       type: "keyword",
       index: true, //se o campo será indexado para buscas.
-      store: true, // Pode buscar só o id sem carregar o _source
     },
     name: {
       type: "text",
       index: true,
-      store: true, // Pode buscar só o id sem carregar o _source
+      store: true, // Pode buscar só o nome sem carregar o _source
       fields: {
         keyword: {
           type: "keyword",
@@ -32,11 +31,9 @@ export const esMapping: MappingTypeMapping = {
     },
     price: {
       type: "float",
-      store: true,
     },
     quantity: {
       type: "integer",
-      store: true,
     },
   },
 };

@@ -35,6 +35,7 @@ export async function createIndex() {
   try {
     await client.indices.create({
       index: indexName,
+      mappings: {},
     });
     console.log("Index created");
   } catch (error) {
