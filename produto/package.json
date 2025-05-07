@@ -4,7 +4,14 @@
   "description": "usar o elastic e kibana para buscas em dev usar o docker em prode cloud",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "tsc": "tsc",
+    "test": "npm run tsc -- --noEmit && jest",
+    "dev": "sh scripts/server.sh",
+    "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "migrate:reset": "prisma migrate reset",
+    "migrate:resolve": "prisma migrate resolve",
+    "migrate:status": "prisma migrate status"
   },
   "keywords": [],
   "author": "",
@@ -19,19 +26,17 @@
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
+    "@swc/cli": "^0.7.4",
+    "@swc/core": "^1.11.24",
+    "@swc/jest": "^0.2.38",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
     "prisma": "^6.7.0",
+    "ts-jest": "^29.3.2",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3"
-  },
-  "escripts": {
-    "tsc": "tsc",
-    "dev": "sh scripts/server.sh",
-    "migrate": "prisma migrate dev",
-    "migrate:deploy": "prisma migrate deploy",
-    "migrate:reset": "prisma migrate reset",
-    "migrate:resolve": "prisma migrate resolve",
-    "migrate:status": "prisma migrate status"
   }
 }
