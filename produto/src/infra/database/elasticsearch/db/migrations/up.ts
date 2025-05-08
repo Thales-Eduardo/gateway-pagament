@@ -1,4 +1,9 @@
+import { Client } from "@elastic/elasticsearch";
 import { MappingTypeMapping } from "@elastic/elasticsearch/lib/api/types";
+import dotenv from "dotenv";
+dotenv.config();
+
+const client = new Client({ node: process.env.ELASTICSEARCH_URL });
 
 export const esMapping: MappingTypeMapping = {
   dynamic: true, //campos que não estão mapeados previamente, serão criados automaticamente
@@ -37,3 +42,10 @@ export const esMapping: MappingTypeMapping = {
     },
   },
 };
+
+(async () => {
+  await client.indices.create({
+    index: process.env.ELASTICSEARCH_INDEX_NAME || "products",
+    mappings: esMapping,
+  });
+})();

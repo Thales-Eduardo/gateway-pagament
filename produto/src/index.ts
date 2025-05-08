@@ -1,4 +1,5 @@
 import cors from "cors";
+import "dotenv";
 import express, { ErrorRequestHandler } from "express";
 
 const app = express();

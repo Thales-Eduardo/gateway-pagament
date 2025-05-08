@@ -4,6 +4,8 @@
   "description": "usar o elastic e kibana para buscas em dev usar o docker em prode cloud",
   "main": "index.js",
   "scripts": {
+    "migrate:elasticsearch:up": "ts-node-dev src/infra/database/elasticsearch/db/migrations/up.ts",
+    "migrate:elasticsearch:down": "ts-node-dev src/infra/database/elasticsearch/db/migrations/down.ts",
     "tsc": "tsc",
     "test": "npm run tsc -- --noEmit && jest",
     "dev": "sh scripts/server.sh",
@@ -21,6 +23,7 @@
     "@elastic/elasticsearch": "^9.0.1",
     "@prisma/client": "^6.7.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-async-errors": "^3.1.1",
     "jsonwebtoken": "^9.0.2"
