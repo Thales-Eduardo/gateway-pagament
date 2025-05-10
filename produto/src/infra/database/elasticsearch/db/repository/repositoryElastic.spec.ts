@@ -136,15 +136,11 @@ describe("RepositoryElastic - Integration Tests", () => {
 
       await esClient.indices.refresh({ index: indexName });
 
-      const result = await repository.searchName("Apple");
+      const result = await repository.findName("Apple");
 
-      expect(result.hits.hits).toHaveLength(2);
-      expect((result.hits.hits[0]._source as { name: string }).name).toContain(
-        "Apple"
-      );
-      expect((result.hits.hits[1]._source as { name: string }).name).toContain(
-        "Apple"
-      );
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toContain("Apple");
+      expect(result[1].name).toContain("Apple");
     });
   });
 

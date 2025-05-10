@@ -58,17 +58,38 @@ export class RepositoryElastic {
     }
   }
 
-  public async searchName(name: string) {
-    const result = await this.client.search({
+  public async findAll() {
+    const response = await this.client.search({
       index: this.indexName,
+      size: 100,
+      query: {
+        match_all: {},
+      },
+    });
+
+    return response.hits.hits.map((hit) => ({
+      id: hit._id,
+      ...(hit._source as Record<string, any>),
+    }));
+  }
+
+  public async findName(name: string) {
+    const response = await this.client.search({
+      index: this.indexName,
+      size: 100,
       query: {
         match: {
-          name: name,
+          name: name, // busca por nome (com análise linguística)
         },
       },
     });
 
-    return result;
+    return response.hits.hits.map((hit) => ({
+      id: hit._id,
+      name: (hit._source as { name: string })?.name,
+      price: (hit._source as { price: number })?.price,
+      quantity: (hit._source as { quantity: number })?.quantity,
+    }));
   }
 
   public async findById(id: string) {

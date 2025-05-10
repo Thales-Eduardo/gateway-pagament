@@ -64,7 +64,6 @@ describe("ProductRepository - Integration Tests", () => {
         data: { name: "Find Test", price: 15, quantity: 8 },
       });
 
-      console.log(testProduct.id);
       const foundProduct = await productRepository.findById(testProduct.id);
 
       expect(foundProduct).toEqual(testProduct);

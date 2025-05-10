@@ -1,12 +1,18 @@
 import cors from "cors";
 import "dotenv";
 import express, { ErrorRequestHandler } from "express";
+import { router } from "./routes";
 
 const app = express();
 const port = 3333;
 
 app.use(express.json());
 app.use(cors());
+app.use(router);
+
+app.get("/", (req: express.Request, res: express.Response) => {});
+
+app.post("/", (req: express.Request, res: express.Response) => {});
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next): any => {
   if (err instanceof Error) {
