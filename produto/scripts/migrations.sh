@@ -1,0 +1,1 @@
+yarn migrate && yarn migrate:elasticsearch:up
