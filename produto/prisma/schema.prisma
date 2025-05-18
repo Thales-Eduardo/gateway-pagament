@@ -15,4 +15,6 @@ model Product {
   name      String   @db.VarChar(255)
   price     Float    @db.Float
   quantity  Int      @db.Int
+
+  @@map("product")
 }

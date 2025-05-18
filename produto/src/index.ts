@@ -10,10 +10,6 @@ app.use(express.json());
 app.use(cors());
 app.use(router);
 
-app.get("/", (req: express.Request, res: express.Response) => {});
-
-app.post("/", (req: express.Request, res: express.Response) => {});
-
 const errorHandler: ErrorRequestHandler = (err, req, res, next): any => {
   if (err instanceof Error) {
     return res.json({

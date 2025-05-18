@@ -45,7 +45,7 @@ export const esMapping: MappingTypeMapping = {
 
 (async () => {
   await client.indices.create({
-    index: process.env.ELASTICSEARCH_INDEX_NAME || "products",
+    index: process.env.ELASTICSEARCH_INDEX_NAME || "product",
     mappings: esMapping,
   });
 })();

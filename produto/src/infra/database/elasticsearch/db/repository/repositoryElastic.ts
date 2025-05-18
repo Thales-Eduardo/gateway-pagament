@@ -6,7 +6,7 @@ export class RepositoryElastic {
 
   constructor() {
     this.client = new Client({ node: process.env.ELASTICSEARCH_URL });
-    this.indexName = process.env.ELASTICSEARCH_INDEX || "products";
+    this.indexName = process.env.ELASTICSEARCH_INDEX || "Product";
   }
 
   public async insertDocument(
