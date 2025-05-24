@@ -6,7 +6,9 @@ export class RepositoryElastic {
 
   constructor() {
     this.client = new Client({ node: process.env.ELASTICSEARCH_URL });
-    this.indexName = process.env.ELASTICSEARCH_INDEX || "Product";
+    this.indexName =
+      process.env.ELASTICSEARCH_INDEX_NAME ||
+      "mysql-server.micro_payment.product";
   }
 
   public async insertDocument(
@@ -78,14 +80,17 @@ export class RepositoryElastic {
       index: this.indexName,
       size: 100,
       query: {
-        match: {
-          name: name, // busca por nome (com análise linguística)
+        wildcard: {
+          name: {
+            value: `*${name}*`,
+            case_insensitive: true,
+          },
         },
       },
     });
 
     return response.hits.hits.map((hit) => ({
-      id: hit._id,
+      id: (hit._source as { id: string })?.id,
       name: (hit._source as { name: string })?.name,
       price: (hit._source as { price: number })?.price,
       quantity: (hit._source as { quantity: number })?.quantity,
@@ -93,14 +98,18 @@ export class RepositoryElastic {
   }
 
   public async findById(id: string) {
-    const response: any = await this.client.get({
+    const response = await this.client.search({
       index: this.indexName,
-      id: id,
+      query: {
+        term: {
+          "id.keyword": id,
+        },
+      },
     });
 
-    return {
-      _id: response._id,
-      ...response._source,
-    };
+    return response.hits.hits.map((hit: any) => ({
+      id: hit._id, // Elasticsearch internal _id
+      ...hit._source,
+    }));
   }
 }

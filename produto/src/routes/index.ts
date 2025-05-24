@@ -4,6 +4,7 @@ import { ProductRepository } from "../infra/database/mysql/repository/ProductRep
 import { CreateProductService } from "../services/CreateProduct.service";
 import { FindAllProductService } from "../services/FindAllProduct.service";
 import { GetProductsByIdService } from "../services/GetProductsById.service";
+import { GetProductsByNameServicee } from "../services/GetProductsByName.service";
 
 const productRepository = new ProductRepository();
 const productRepositoryElastic = new RepositoryElastic();
@@ -12,12 +13,12 @@ export const router = Router();
 
 router.get("/findByName/:name", async (req: Request, res: Response) => {
   const { name } = req.params;
-  const getProductsByIdService = new GetProductsByIdService(
+  const getProductsByNameServicee = new GetProductsByNameServicee(
     productRepositoryElastic
   );
 
   try {
-    const product = await getProductsByIdService.execute(name);
+    const product = await getProductsByNameServicee.execute(name);
     res.status(200).json(product);
   } catch (error) {
     res.status(500).json({ error: "Error fetching product" });

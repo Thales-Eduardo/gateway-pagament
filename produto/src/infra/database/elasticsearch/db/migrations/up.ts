@@ -45,7 +45,9 @@ export const esMapping: MappingTypeMapping = {
 
 (async () => {
   await client.indices.create({
-    index: process.env.ELASTICSEARCH_INDEX_NAME || "product",
+    index:
+      process.env.ELASTICSEARCH_INDEX_NAME ||
+      "mysql-server.micro_payment.product",
     mappings: esMapping,
   });
 })();
