@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  mysql-sink:
+    image: mysql:8.0.30-debian
+    command: --innodb-use-native-aio=0 --default-authentication-plugin=mysql_native_password --server-id=1 --log-bin=mysql-bin --binlog-format=ROW
+    tty: true
+    restart: always
+    ports:
+      - "33700:3306"
+    environment:
+      - MYSQL_DATABASE=process_purchases
+      - MYSQL_ROOT_PASSWORD=randomrootpassword
+      - MYSQL_USER=randomuser
+    volumes:
+      - ./.docker/mysql2:/docker-entrypoint-initdb.d
+    # tmpfs: # aquivos inteiros na memoria ram para melhorar velocidade de leitura
+    #   - /var/lib/mysql
+    # security_opt:
+    #   - seccomp:unconfined
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"

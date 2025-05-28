@@ -53,11 +53,13 @@ services:
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
+    restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
 
   kafka:
     image: confluentinc/cp-kafka:latest
+    restart: always
     depends_on:
       - zookeeper
     ports:
@@ -76,6 +78,7 @@ services:
 
   control-center:
     image: confluentinc/cp-enterprise-control-center:6.0.1
+    restart: always
     hostname: control-center
     depends_on:
       - kafka
@@ -91,6 +94,7 @@ services:
 
   kafka-connect:
     image: confluentinc/cp-kafka-connect-base:6.0.0
+    restart: always
     container_name: kafka-connect
     depends_on:
       - zookeeper
@@ -101,6 +105,7 @@ services:
       CONNECT_BOOTSTRAP_SERVERS: "kafka:9092"
       CONNECT_REST_PORT: 8083
       CONNECT_GROUP_ID: kafka-connect
+
       CONNECT_CONFIG_STORAGE_TOPIC: _connect-configs
       CONNECT_OFFSET_STORAGE_TOPIC: _connect-offsets
       CONNECT_STATUS_STORAGE_TOPIC: _connect-status
@@ -124,19 +129,23 @@ services:
     # when running this offline, spin up the stack once and then run :
     #   docker cp kafka-connect:/usr/share/confluent-hub-components ./data/connect-jars
     volumes:
-      - $PWD/data:/data
+      - $PWD/produto/.docker/data:/data
     # In the command section, $ are replaced with $$ to avoid the error 'Invalid interpolation format for "command" option'
     command:
       - bash
       - -c
       - |
-        echo "Installing Connector"
+        echo "Installing Connectors"
         confluent-hub install --no-prompt debezium/debezium-connector-mysql:1.2.2
         confluent-hub install --no-prompt confluentinc/kafka-connect-elasticsearch:14.0.13
-        #
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.7.0
+
+        echo "Downloading MySQL JDBC driver"
+        curl -L -o /usr/share/confluent-hub-components/confluentinc-kafka-connect-jdbc/lib/mysql-connector-java-8.3.0.jar \
+           https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.3.0/mysql-connector-j-8.3.0.jar
+
+
         echo "Launching Kafka Connect worker"
-        /etc/confluent/docker/run &
-        #
-        sleep infinity
+        exec /etc/confluent/docker/run
     extra_hosts:
       - "host.docker.internal:172.17.0.1"
