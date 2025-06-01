@@ -10,12 +10,14 @@ datasource db {
 model RegisterPaymentRequest {
   id                 String   @id @default(ulid()) @db.VarChar(26)
   product_id         String   @db.VarChar(255)
+  user_id            String   @db.VarChar(255)
   price              Float    @db.Float
-  quantity           Int
+  quantity           Int      @db.Int
   card_number        String   @db.VarChar(255)
   card_exp_month     String   @db.VarChar(255)
   card_exp_year      String   @db.VarChar(255)
   card_security_code String   @db.VarChar(255)
+  status             Int      @db.Int
   updatedAt          DateTime @updatedAt
   createdAt          DateTime @default(now())
 

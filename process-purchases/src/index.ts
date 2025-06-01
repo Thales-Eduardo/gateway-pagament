@@ -1,6 +1,7 @@
 import cors from "cors";
 import "dotenv";
 import express, { ErrorRequestHandler } from "express";
+import "./kafka";
 // import { router } from "./routes";
 
 const app = express();
@@ -9,6 +10,13 @@ const port = 3334;
 app.use(express.json());
 app.use(cors());
 // app.use(router);
+
+app.get("/", (req: any, res: any) => {
+  return res.json({
+    status: "ok",
+    message: "Process Purchases Service is running",
+  });
+});
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next): any => {
   if (err instanceof Error) {

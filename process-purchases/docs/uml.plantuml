@@ -1,0 +1,40 @@
+@startuml process_purchases_flow
+actor Cliente
+participant "API Gateway" as Gateway
+database "Tabela Anti-Duplicação" as AntiDup
+queue "order_queue" as OrderQueue
+participant "Processador" as Processor
+database "Tabela Pedidos" as Orders
+queue "process-purchases" as ProcessPurchases
+
+Cliente -> Gateway: POST /pedido {user_id, itens}
+activate Gateway
+
+Gateway -> AntiDup: Verifica pedido similar\n(user_id, últimos 1m)
+AntiDup --> Gateway: Resultado (existe/não existe)
+
+alt Pedido similar existe
+    Gateway --> Cliente: 409 Conflict\n"Pedido duplicado"
+else Nenhum pedido similar
+    Gateway -> AntiDup: Insere\n(id_transacao, user_id, process: false)
+    Gateway -> OrderQueue: Envia mensagem
+    Gateway --> Cliente: 202 Accepted\n"Pedido em processamento"
+end
+
+deactivate Gateway
+
+...
+
+OrderQueue -> Processor: Consome mensagem
+activate Processor
+
+Processor -> AntiDup: Verifica status
+AntiDup --> Processor: process: false
+
+Processor -> Orders: Registra pedido pagamento
+Processor -> AntiDup: Atualiza process: true
+Processor -> ProcessPurchases: Envia para pagamento
+Processor --> OrderQueue: Commit offset
+
+deactivate Processor
+@enduml

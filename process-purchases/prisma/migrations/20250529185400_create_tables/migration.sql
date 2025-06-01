@@ -8,6 +8,7 @@ CREATE TABLE `register_payment_request` (
     `card_exp_month` VARCHAR(255) NOT NULL,
     `card_exp_year` VARCHAR(255) NOT NULL,
     `card_security_code` VARCHAR(255) NOT NULL,
+    `status` INTEGER NOT NULL,
     `updatedAt` DATETIME(3) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
