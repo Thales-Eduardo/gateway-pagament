@@ -23,12 +23,12 @@ const kafka = new Kafka({
     },
     {
       topic: "process-purchases", // processar compras
-      numPartitions: 1,
+      numPartitions: 2,
       replicationFactor: 1,
     },
     {
       topic: "purchases-processed", // compras processadas
-      numPartitions: 1,
+      numPartitions: 2,
       replicationFactor: 1,
     },
   ];
