@@ -4,7 +4,7 @@ export interface ReceivePaymentRequestDtos {
   produto: {
     product_id: string;
     user_id: string;
-    price: boolean;
+    price: number;
     quantity: number;
   };
 
@@ -14,13 +14,15 @@ export interface ReceivePaymentRequestDtos {
     card_exp_year: string;
     card_security_code: string;
   };
+  data: Date;
 }
 
 export class ReceivePaymentRequest {
-  async execute({ produto, card }: ReceivePaymentRequestDtos): Promise<any> {
-    // verificar se o tempo com o created da tabela de pedido de pagamento
-    // é maior que 1 minuto, se sim, não processar o pedido de pagamento.
-
+  async execute({
+    produto,
+    card,
+    data,
+  }: ReceivePaymentRequestDtos): Promise<any> {
     // verificar se esse usuário já tem um pedido igual na tabela de register_payment_request,
     // Se sim, verificar se o pedido tem menos de 1-2 minutos de registro.
 

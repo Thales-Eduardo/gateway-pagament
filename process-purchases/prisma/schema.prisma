@@ -36,10 +36,10 @@ model Product {
 }
 
 model AntiDuplication {
-  id_transacao String   @id //PaymentRequest
-  user_id      String
-  process      Boolean
-  createdAt    DateTime @default(now())
+  id_transaction String   @id //PaymentRequest
+  user_id        String
+  process        Boolean
+  createdAt      DateTime @default(now())
 
   @@map("anti_duplication")
 }
