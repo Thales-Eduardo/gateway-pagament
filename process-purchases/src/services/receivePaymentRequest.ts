@@ -23,6 +23,8 @@ export class ReceivePaymentRequest {
     card,
     data,
   }: ReceivePaymentRequestDtos): Promise<any> {
+    // producer
+
     // verificar se esse usuário já tem um pedido igual na tabela de register_payment_request,
     // Se sim, verificar se o pedido tem menos de 1-2 minutos de registro.
 

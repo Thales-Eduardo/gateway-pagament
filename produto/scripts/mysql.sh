@@ -10,3 +10,4 @@ use micro_payment;
 show tables;
 
 select * from product;
+select * from register_payment_request;

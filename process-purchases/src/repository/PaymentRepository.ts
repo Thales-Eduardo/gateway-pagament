@@ -30,11 +30,12 @@ enum StatusPayment {
 }
 
 export class PaymentRepository {
+  //melhorar qry at
   async createPaymentRequest({
     produto,
     card,
-    data = new Date(),
-  }: RegisterPaymentRequestDTOs): Promise<boolean> {
+    data,
+  }: RegisterPaymentRequestDTOs): Promise<any> {
     const nowBr = DateTime.fromJSDate(data, { zone: "America/Sao_Paulo" });
     const cutoffUtc = nowBr.minus({ minutes: 2 }).toUTC().toJSDate();
 
@@ -49,9 +50,9 @@ export class PaymentRepository {
       orderBy: { createdAt: "desc" },
     });
 
-    if (existing === null) return existing === null;
+    if (existing) return false;
 
-    await prismaClient.registerPaymentRequest.create({
+    const createdRecord = await prismaClient.registerPaymentRequest.create({
       data: {
         card_exp_month: card.card_exp_month,
         card_exp_year: card.card_exp_year,
@@ -65,16 +66,64 @@ export class PaymentRepository {
       },
     });
 
-    return true;
+    return {
+      id: createdRecord.id,
+      value: true,
+    };
   }
 
-  // async createRecordAntiDuplication(): Promise<void> {
-  //   await prismaClient.antiDuplication.create({
-  //     data: {
-  //       id_transacao,
-  //       user_id,
-  //       process,
-  //     },
-  //   });
-  // }
+  async createRecordAntiDuplication(
+    id_transaction: string,
+    user_id: string,
+    process: boolean
+  ): Promise<string> {
+    const createAntDuplication = await prismaClient.antiDuplication.create({
+      data: {
+        id_transaction,
+        user_id,
+        process: process,
+      },
+    });
+
+    return createAntDuplication.id_transaction;
+  }
+
+  async checkAndUpdateOptimistic(id_transaction: string): Promise<any> {
+    const updateResult = await prismaClient.antiDuplication.updateMany({
+      where: {
+        id_transaction: id_transaction,
+        process: false, // Só atualiza se for false
+      },
+      data: {
+        process: true, // Atualiza para true
+      },
+    });
+
+    // Se retornou 0, o registro já estava como true ou não existe
+    // Se atualizou 1 registro, significa que estava false e foi alterado
+    return {
+      value: updateResult.count === 1 ? true : false,
+      id_transaction,
+    };
+  }
+
+  async deleteAntDuplication() {
+    await prismaClient.antiDuplication.deleteMany();
+  }
+
+  async deletePaymentRequest() {
+    await prismaClient.registerPaymentRequest.deleteMany();
+  }
+
+  async findPaymentRequest(id: string) {
+    return await prismaClient.registerPaymentRequest.findUnique({
+      where: { id: id },
+    });
+  }
+
+  async findAntiDuplication(id: string) {
+    return await prismaClient.antiDuplication.findUnique({
+      where: { id_transaction: id },
+    });
+  }
 }
