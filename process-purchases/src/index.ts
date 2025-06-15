@@ -1,6 +1,7 @@
 import cors from "cors";
 import "dotenv";
 import express, { ErrorRequestHandler } from "express";
+import { AppErrors } from "./error/errors";
 import "./kafka";
 // import { router } from "./routes";
 
@@ -19,7 +20,7 @@ app.get("/", (req: any, res: any) => {
 });
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next): any => {
-  if (err instanceof Error) {
+  if (err instanceof AppErrors) {
     return res.json({
       status: "error",
       message: err.message,

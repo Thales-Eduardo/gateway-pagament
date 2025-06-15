@@ -6,6 +6,8 @@
 
 // enviar para topic para processar a compra
 
+//consumer
+
 export class ProcessPaymentRequest {
   async execute(): Promise<any> {}
 }

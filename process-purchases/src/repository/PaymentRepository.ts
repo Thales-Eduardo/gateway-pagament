@@ -126,4 +126,14 @@ export class PaymentRepository {
       where: { id_transaction: id },
     });
   }
+
+  async findbyIdProduct(product_id: string) {
+    const product = await prismaClient.product.findFirst({
+      where: {
+        id: product_id,
+      },
+    });
+
+    return product;
+  }
 }

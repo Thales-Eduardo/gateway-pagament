@@ -1,4 +1,6 @@
 //recebe o pedido de pagamento
+import { AppErrors } from "../error/errors";
+import { PaymentRepository } from "../repository/PaymentRepository";
 
 export interface ReceivePaymentRequestDtos {
   produto: {
@@ -14,21 +16,58 @@ export interface ReceivePaymentRequestDtos {
     card_exp_year: string;
     card_security_code: string;
   };
+
   data: Date;
 }
 
 export class ReceivePaymentRequest {
+  constructor(private paymentRepository: PaymentRepository) {}
+
   async execute({
     produto,
     card,
     data,
   }: ReceivePaymentRequestDtos): Promise<any> {
     // producer
+    const findProduct = await this.paymentRepository.findbyIdProduct(
+      produto.product_id
+    );
+    if (!findProduct) {
+      throw new AppErrors("Produto não encontrado.");
+    }
+    if (produto.quantity <= 0) {
+      throw new AppErrors("Quantidade deve ser positiva");
+    }
+    if (produto.quantity > findProduct.quantity) {
+      throw new AppErrors(
+        `Quantidade indisponível. Solicitação: ${produto.quantity}, Disponível: ${findProduct.quantity}`
+      );
+    }
+    const PRICE_TOLERANCE = 0.01;
+    const priceDifference = Math.abs(produto.price - findProduct.price);
+    if (priceDifference > PRICE_TOLERANCE) {
+      throw new AppErrors(
+        `Preço inconsistente. Esperado: ${findProduct.price}, Recebido: ${produto.price}`
+      );
+    }
 
-    // verificar se esse usuário já tem um pedido igual na tabela de register_payment_request,
-    // Se sim, verificar se o pedido tem menos de 1-2 minutos de registro.
+    // verificar se usuário já tem um pedido igual ou menor que 2 minutos.
+    const result = await this.paymentRepository.createPaymentRequest({
+      produto,
+      card,
+      data,
+    });
 
-    //registrar o pedido na tabela de anti_duplication com o process: false
+    if (result) {
+      throw new AppErrors("Pedido de pagamento recusado, tente novamente.");
+    }
+
+    await this.paymentRepository.createRecordAntiDuplication(
+      result.id,
+      produto.user_id,
+      false
+    );
+
     // Registra o pedido na fila.
 
     //adicionar estratégia de DLQ em caso de erro
