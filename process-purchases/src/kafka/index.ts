@@ -31,6 +31,11 @@ const kafka = new Kafka({
       numPartitions: 2,
       replicationFactor: 1,
     },
+    {
+      topic: "order_queue_dlq",
+      numPartitions: 2,
+      replicationFactor: 1,
+    },
   ];
 
   await admin.createTopics({ topics });
