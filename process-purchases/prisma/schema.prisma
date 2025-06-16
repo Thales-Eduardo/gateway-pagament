@@ -25,12 +25,12 @@ model RegisterPaymentRequest {
 }
 
 model Product {
-  id        String   @id
-  name      String   @db.VarChar(255)
-  price     Float    @db.Float
-  quantity  Int      @db.Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String @id
+  name      String @db.VarChar(255)
+  price     Float  @db.Float
+  quantity  Int    @db.Int
+  createdAt BigInt @default(0)
+  updatedAt BigInt @default(0)
 
   @@map("product")
 }

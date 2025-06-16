@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `product` MODIFY `createdAt` BIGINT NOT NULL DEFAULT 0,
+    MODIFY `updatedAt` BIGINT NOT NULL DEFAULT 0;
