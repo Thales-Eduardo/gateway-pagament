@@ -1,4 +1,5 @@
 //recebe o pedido de pagamento
+// producer
 import { AppErrors } from "../error/errors";
 import { PaymentRepository } from "../repository/PaymentRepository";
 
@@ -28,7 +29,6 @@ export class ReceivePaymentRequest {
     card,
     data,
   }: ReceivePaymentRequestDtos): Promise<any> {
-    // producer
     const findProduct = await this.paymentRepository.findbyIdProduct(
       produto.product_id
     );
@@ -69,7 +69,6 @@ export class ReceivePaymentRequest {
     );
 
     // Registra o pedido na fila.
-
     //adicionar estratégia de DLQ em caso de erro
     return "";
   }
