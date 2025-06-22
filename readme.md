@@ -1,1 +1,3 @@
-trocar o nome da tabela de produto para `produto reservados`
+adicionar tabela `produto reservados`
+
+trocar o typo do price das tabelas para decimal 19,4

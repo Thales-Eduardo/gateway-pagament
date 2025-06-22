@@ -3,6 +3,7 @@ import "dotenv";
 import express, { ErrorRequestHandler } from "express";
 import { AppErrors } from "./error/errors";
 import "./kafka";
+import { consumerOrderQueue } from "./kafka/consumers/order-queue";
 // import { router } from "./routes";
 
 const app = express();
@@ -36,6 +37,13 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next): any => {
 };
 
 app.use(errorHandler);
+
+//consumer
+(async () => {
+  while (true) {
+    await consumerOrderQueue().catch(console.error);
+  }
+})();
 
 const server = app.listen(port, () => {
   console.log(`http://localhost:${port} 🔥🔥🚒`);

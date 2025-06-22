@@ -27,6 +27,7 @@
     "@types/express": "^5.0.2",
     "@types/jest": "^29.5.14",
     "@types/luxon": "^3.6.2",
+    "@types/node": "^24.0.3",
     "jest": "^30.0.0",
     "prisma": "^6.8.2",
     "ts-jest": "^29.4.0",
