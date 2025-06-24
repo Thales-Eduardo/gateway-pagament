@@ -1,6 +1,7 @@
 //recebe o pedido de pagamento
 // producer
 import { AppErrors } from "../error/errors";
+import { producerOrderQueue } from "../kafka/producers/add-to-order-queue";
 import { PaymentRepository } from "../repository/PaymentRepository";
 
 export interface ReceivePaymentRequestDtos {
@@ -69,7 +70,12 @@ export class ReceivePaymentRequest {
     );
 
     // Registra o pedido na fila.
-    //adicionar estratégia de DLQ em caso de erro
+    await producerOrderQueue({
+      produto,
+      card,
+      data,
+    });
+
     return "";
   }
 }

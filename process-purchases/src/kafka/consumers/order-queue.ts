@@ -61,7 +61,7 @@ export async function consumerOrderQueue() {
 }
 
 async function consumerOrderQueueData(data: any) {
-  //operação com o banco de dados
+  //operação de regra de negocio com o banco de dados
   console.log("consumer = order_queue:", data);
 
   return data;
