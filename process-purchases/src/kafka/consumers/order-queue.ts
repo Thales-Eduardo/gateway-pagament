@@ -1,31 +1,34 @@
 import { EachMessagePayload } from "kafkajs";
 import { producer } from "../producers/index";
-import { consumer } from "./index";
+import { consumerOrder } from "./index";
 
 export async function consumerOrderQueue() {
   try {
-    await consumer.connect();
-    await consumer.subscribe({ topic: "order_queue", fromBeginning: true });
+    await consumerOrder.connect();
+    await consumerOrder.subscribe({
+      topic: "order_queue",
+    });
 
-    await consumer.run({
-      autoCommit: false,
+    await consumerOrder.run({
       eachMessage: async ({
         topic,
         partition,
         message,
+        heartbeat,
       }: EachMessagePayload) => {
         try {
+          await heartbeat();
+
           const data = JSON.parse(message.value!.toString());
           await consumerOrderQueueData(data);
 
-          await consumer.commitOffsets([
-            {
-              topic,
-              partition,
-              offset: (Number(message.offset) + 1).toString(),
-            },
+          await heartbeat();
+
+          await consumerOrder.commitOffsets([
+            { topic, partition, offset: message.offset },
           ]);
         } catch (error: any) {
+          await heartbeat();
           console.error(
             `Erro no tópico ${topic}, partição ${partition}, offset ${message.offset}:`,
             error
@@ -59,7 +62,7 @@ export async function consumerOrderQueue() {
 
 async function consumerOrderQueueData(data: any) {
   //operação com o banco de dados
-  console.log("consumer:", data);
+  console.log("consumer = order_queue:", data);
 
   return data;
 }

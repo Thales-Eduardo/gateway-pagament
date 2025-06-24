@@ -40,9 +40,7 @@ app.use(errorHandler);
 
 //consumer
 (async () => {
-  while (true) {
-    await consumerOrderQueue().catch(console.error);
-  }
+  await consumerOrderQueue();
 })();
 
 const server = app.listen(port, () => {

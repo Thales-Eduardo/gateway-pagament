@@ -6,7 +6,6 @@ export const producer = new Kafka().producer({
     ssl: false,
     acks: -1,
     retry: { retries: 10 },
-    compression: "snappy", // Snappy
     transactionTimeout: 60000,
   },
 });
