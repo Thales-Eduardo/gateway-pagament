@@ -20,6 +20,8 @@ interface messageDtos {
 
 export async function producerOrderQueue(message: messageDtos) {
   try {
+    await producer.connect();
+
     const metadata = await producer.send({
       topic: "order_queue",
       messages: [
@@ -34,8 +36,11 @@ export async function producerOrderQueue(message: messageDtos) {
       ],
     });
 
+    await producer.disconnect();
+
     return metadata;
   } catch (error: any) {
+    console.log("erro", error);
     await sendToDLQ({
       originalTopic: "order_queue",
       originalMessage: message,
@@ -67,3 +72,23 @@ async function sendToDLQ(dlqPayload: any) {
     console.error("FALHA CRÍTICA: Erro ao enviar para DLQ", dlqError);
   }
 }
+
+// (async () => {
+//   await producerOrderQueue({
+//     produto: {
+//       product_id: "123",
+//       user_id: "1234",
+//       price: 12,
+//       quantity: 1,
+//     },
+
+//     card: {
+//       card_number: "214143",
+//       card_exp_month: "fsfsfs",
+//       card_exp_year: "dsaedad",
+//       card_security_code: "123",
+//     },
+
+//     data: new Date(),
+//   });
+// })();
