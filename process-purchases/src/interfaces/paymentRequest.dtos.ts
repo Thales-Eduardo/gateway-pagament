@@ -14,4 +14,10 @@ export interface InterfacePaymentRequestDtos {
   };
 
   data: Date;
+
+  anti_duplication?: {
+    id: string;
+    user_id: string;
+    processed: boolean;
+  };
 }

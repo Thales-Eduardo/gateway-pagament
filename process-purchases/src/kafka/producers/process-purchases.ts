@@ -1,12 +1,10 @@
 import { InterfacePaymentRequestDtos } from "../../interfaces/paymentRequest.dtos";
-import { producer } from "./index";
+import { producerProcessPurchess as producer, producerDlq } from "./index";
 
 export async function producerProcessPurchess(
   message: InterfacePaymentRequestDtos
 ) {
   try {
-    await producer.connect();
-
     const metadata = await producer.send({
       topic: "process-purchases",
       messages: [
@@ -20,8 +18,6 @@ export async function producerProcessPurchess(
         },
       ],
     });
-
-    await producer.disconnect();
 
     return metadata;
   } catch (error: any) {
@@ -41,7 +37,7 @@ export async function producerProcessPurchess(
 
 async function sendToDLQ(dlqPayload: any) {
   try {
-    await producer.send({
+    await producerDlq.send({
       topic: "order_queue_dlq",
       messages: [
         {

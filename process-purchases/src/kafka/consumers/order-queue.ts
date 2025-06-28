@@ -1,6 +1,11 @@
 import { EachMessagePayload } from "kafkajs";
-import { producer } from "../producers/index";
+import { PaymentRepository } from "../../repository/PaymentRepository";
+import { ProcessPaymentRequest } from "../../services/ProcessPaymentRequest";
+import { producerDlq } from "../producers/index";
 import { consumerOrder } from "./index";
+
+const paymentRepository = new PaymentRepository();
+const processPaymentRequest = new ProcessPaymentRequest(paymentRepository);
 
 export async function consumerOrderQueue() {
   try {
@@ -58,7 +63,7 @@ export async function consumerOrderQueue() {
 }
 
 async function consumerOrderQueueData(data: any) {
-  //operação de regra de negocio com o banco de dados
+  await processPaymentRequest.execute(data);
   console.log("consumer = order_queue:", data);
 
   return data;
@@ -66,7 +71,7 @@ async function consumerOrderQueueData(data: any) {
 
 async function sendToDLQ(dlqPayload: any) {
   try {
-    await producer.send({
+    await producerDlq.send({
       topic: "order_queue_consumer_dlq",
       messages: [
         {

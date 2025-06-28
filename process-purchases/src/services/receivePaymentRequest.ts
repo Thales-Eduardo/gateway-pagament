@@ -62,6 +62,11 @@ export class ReceivePaymentRequest {
       produto,
       card,
       data,
+      anti_duplication: {
+        id: result.id,
+        user_id: produto.user_id,
+        processed: false,
+      },
     });
   }
 }

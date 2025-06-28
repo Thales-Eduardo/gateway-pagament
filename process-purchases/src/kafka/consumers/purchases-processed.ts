@@ -1,5 +1,5 @@
 import { EachMessagePayload } from "kafkajs";
-import { producer } from "../producers/index";
+import { producerDlq } from "../producers/index";
 import { consumerPurchases } from "./index";
 
 export async function consumerPurchasesProcessed() {
@@ -66,7 +66,7 @@ async function consumerPurchasesProcessedData(data: any) {
 
 async function sendToDLQ(dlqPayload: any) {
   try {
-    await producer.send({
+    await producerDlq.send({
       topic: "order_queue_consumer_dlq",
       messages: [
         {

@@ -5,6 +5,7 @@ import { AppErrors } from "./error/errors";
 import "./kafka";
 import { consumerOrderQueue } from "./kafka/consumers/order-queue";
 import { consumerPurchasesProcessed } from "./kafka/consumers/purchases-processed";
+import { connectAllProducers, disconnectAllProducers } from "./kafka/producers";
 // import { router } from "./routes";
 
 const app = express();
@@ -40,7 +41,11 @@ app.use(errorHandler);
 
 //consumer
 (async () => {
-  await Promise.all([consumerOrderQueue(), consumerPurchasesProcessed()]);
+  await Promise.all([
+    consumerOrderQueue(),
+    consumerPurchasesProcessed(),
+    connectAllProducers(),
+  ]);
 })();
 
 const server = app.listen(port, () => {
@@ -50,7 +55,8 @@ const server = app.listen(port, () => {
 // ---- Graceful Shutdown
 function gracefulShutdown(event: any) {
   const data = new Date().toLocaleString();
-  return (code: any) => {
+  return async (code: any) => {
+    await disconnectAllProducers();
     console.log(`${event} - server ending ${code}`, data);
     server.close(async () => {
       process.exit(0);
