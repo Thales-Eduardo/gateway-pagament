@@ -17,6 +17,12 @@ describe("ProductRepository - Integration Tests", () => {
     await prismaClient.$disconnect();
   });
 
+  // Função auxiliar para normalizar valores decimais
+  const normalizeDecimal = (value: string | number): string => {
+    const num = typeof value === "string" ? parseFloat(value) : value;
+    return num.toFixed(4).replace(/\.?0+$/, "");
+  };
+
   describe("create", () => {
     it("should create a new product in the database", async () => {
       const productData = {
@@ -29,7 +35,11 @@ describe("ProductRepository - Integration Tests", () => {
 
       expect(createdProduct).toHaveProperty("id");
       expect(createdProduct.name).toBe(productData.name);
-      expect(createdProduct.price).toBe(productData.price);
+
+      // Corrigido: usando normalização para comparar valores decimais
+      expect(normalizeDecimal(createdProduct.price)).toBe(
+        normalizeDecimal(productData.price)
+      );
       expect(createdProduct.quantity).toBe(productData.quantity);
 
       const dbProduct = await prismaClient.product.findUnique({
@@ -54,7 +64,15 @@ describe("ProductRepository - Integration Tests", () => {
 
       expect(products).toHaveLength(2);
       expect(products[0].name).toBe(dados[0].name);
+
+      // Corrigido: usando normalização
+      expect(normalizeDecimal(products[0].price)).toBe(
+        normalizeDecimal(dados[0].price)
+      );
       expect(products[1].name).toBe(dados[1].name);
+      expect(normalizeDecimal(products[1].price)).toBe(
+        normalizeDecimal(dados[1].price)
+      );
     });
   });
 
@@ -65,7 +83,6 @@ describe("ProductRepository - Integration Tests", () => {
       });
 
       const foundProduct = await productRepository.findById(testProduct.id);
-
       expect(foundProduct).toEqual(testProduct);
     });
 
@@ -87,12 +104,26 @@ describe("ProductRepository - Integration Tests", () => {
         updatedData
       );
 
-      expect(updatedProduct).toMatchObject(updatedData);
+      // Corrigido: usando normalização
+      expect(updatedProduct).toMatchObject({
+        name: updatedData.name,
+        quantity: updatedData.quantity,
+      });
+      expect(normalizeDecimal(updatedProduct.price)).toBe(
+        normalizeDecimal(updatedData.price)
+      );
 
       const dbProduct = await prismaClient.product.findUnique({
         where: { id: testProduct.id },
       });
-      expect(dbProduct).toMatchObject(updatedData);
+
+      expect(dbProduct).toMatchObject({
+        name: updatedData.name,
+        quantity: updatedData.quantity,
+      });
+      expect(normalizeDecimal(dbProduct!.price.toNumber())).toBe(
+        normalizeDecimal(updatedData.price)
+      );
     });
   });
 

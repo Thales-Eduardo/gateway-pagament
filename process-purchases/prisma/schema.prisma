@@ -11,7 +11,7 @@ model RegisterPaymentRequest {
   id                 String   @id @default(ulid())
   product_id         String   @db.VarChar(255)
   user_id            String   @db.VarChar(255)
-  price              Float    @db.Float
+  price              Decimal  @db.Decimal(19, 4)
   quantity           Int      @db.Int
   card_number        String   @db.VarChar(255)
   card_exp_month     String   @db.VarChar(255)
@@ -25,12 +25,12 @@ model RegisterPaymentRequest {
 }
 
 model Product {
-  id        String @id
-  name      String @db.VarChar(255)
-  price     Float  @db.Float
-  quantity  Int    @db.Int
-  createdAt BigInt @default(0)
-  updatedAt BigInt @default(0)
+  id        String  @id
+  name      String  @db.VarChar(255)
+  price     Decimal @db.Decimal(19, 4)
+  quantity  Int     @db.Int
+  createdAt BigInt  @default(0)
+  updatedAt BigInt  @default(0)
 
   @@map("product")
 }
