@@ -1,35 +1,24 @@
 //recebe o pedido de pagamento
 // producer
 import { AppErrors } from "../error/errors";
+import { InterfacePaymentRequestDtos } from "../interfaces/paymentRequest.dtos";
 import { producerOrderQueue } from "../kafka/producers/add-to-order-queue";
 import { PaymentRepository } from "../repository/PaymentRepository";
 
-export interface ReceivePaymentRequestDtos {
-  produto: {
-    product_id: string;
-    user_id: string;
-    price: number;
-    quantity: number;
-  };
-
-  card: {
-    card_number: string;
-    card_exp_month: string;
-    card_exp_year: string;
-    card_security_code: string;
-  };
-
-  data: Date;
-}
-
 export class ReceivePaymentRequest {
   constructor(private paymentRepository: PaymentRepository) {}
+
+  private compareDecimals(a: string | number, b: unknown): boolean {
+    const numA = Number(parseFloat(String(a)).toFixed(4));
+    const numB = Number(parseFloat(String(b)).toFixed(4));
+    return numA === numB;
+  }
 
   async execute({
     produto,
     card,
     data,
-  }: ReceivePaymentRequestDtos): Promise<any> {
+  }: InterfacePaymentRequestDtos): Promise<void> {
     const findProduct = await this.paymentRepository.findbyIdProduct(
       produto.product_id
     );
@@ -44,9 +33,8 @@ export class ReceivePaymentRequest {
         `Quantidade indisponível. Solicitação: ${produto.quantity}, Disponível: ${findProduct.quantity}`
       );
     }
-    const PRICE_TOLERANCE = 0.01;
-    const priceDifference = Math.abs(produto.price - findProduct.price);
-    if (priceDifference > PRICE_TOLERANCE) {
+
+    if (!this.compareDecimals(produto.price, findProduct.price)) {
       throw new AppErrors(
         `Preço inconsistente. Esperado: ${findProduct.price}, Recebido: ${produto.price}`
       );
@@ -64,7 +52,7 @@ export class ReceivePaymentRequest {
     }
 
     await this.paymentRepository.createRecordAntiDuplication(
-      result.id,
+      result.id, // ID register_payment_request
       produto.user_id,
       false
     );
@@ -75,7 +63,5 @@ export class ReceivePaymentRequest {
       card,
       data,
     });
-
-    return "";
   }
 }

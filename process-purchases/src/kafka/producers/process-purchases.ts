@@ -1,24 +1,9 @@
+import { InterfacePaymentRequestDtos } from "../../interfaces/paymentRequest.dtos";
 import { producer } from "./index";
 
-interface messageDtos {
-  produto: {
-    product_id: string;
-    user_id: string;
-    price: number;
-    quantity: number;
-  };
-
-  card: {
-    card_number: string;
-    card_exp_month: string;
-    card_exp_year: string;
-    card_security_code: string;
-  };
-
-  data: Date;
-}
-
-export async function producerProcessPurchess(message: messageDtos) {
+export async function producerProcessPurchess(
+  message: InterfacePaymentRequestDtos
+) {
   try {
     await producer.connect();
 
