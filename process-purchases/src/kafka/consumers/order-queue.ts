@@ -51,9 +51,6 @@ export async function consumerOrderQueue() {
       //   // Processamento em lote (mais eficiente)
       // },
     });
-
-    // Mantém o consumer ativo até erro fatal
-    await new Promise(() => {}); // Mantém o processo aberto
   } catch (error) {
     console.error("Erro fatal, reiniciando em 10s...", error);
     setTimeout(consumerOrderQueue, 10000);

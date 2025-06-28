@@ -4,6 +4,7 @@ import express, { ErrorRequestHandler } from "express";
 import { AppErrors } from "./error/errors";
 import "./kafka";
 import { consumerOrderQueue } from "./kafka/consumers/order-queue";
+import { consumerPurchasesProcessed } from "./kafka/consumers/purchases-processed";
 // import { router } from "./routes";
 
 const app = express();
@@ -35,12 +36,11 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next): any => {
     message: "Internal server error",
   });
 };
-
 app.use(errorHandler);
 
 //consumer
 (async () => {
-  await consumerOrderQueue();
+  await Promise.all([consumerOrderQueue(), consumerPurchasesProcessed()]);
 })();
 
 const server = app.listen(port, () => {
