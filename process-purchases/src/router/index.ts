@@ -8,7 +8,7 @@ const receivePaymentRequest = new ReceivePaymentRequest(
 
 export const router = Router();
 
-router.put("/payment", async (req, res) => {
+router.post("/payment", async (req, res) => {
   const { produto, card } = req.body;
 
   await receivePaymentRequest.execute({
