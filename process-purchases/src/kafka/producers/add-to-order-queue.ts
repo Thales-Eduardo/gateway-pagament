@@ -3,6 +3,7 @@ import { producerOrderQueue as producer, producerDlq } from "./index";
 
 export async function producerOrderQueue(message: InterfacePaymentRequestDtos) {
   try {
+    // await producer.connect(); //desabilitar para testar
     const metadata = await producer.send({
       topic: "order_queue",
       messages: [
@@ -57,6 +58,7 @@ async function sendToDLQ(dlqPayload: any) {
       user_id: "1234",
       price: 12,
       quantity: 1,
+      total_price: 12,
     },
 
     card: {

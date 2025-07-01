@@ -12,6 +12,7 @@ model RegisterPaymentRequest {
   product_id         String   @db.VarChar(255)
   user_id            String   @db.VarChar(255)
   price              Decimal  @db.Decimal(19, 4)
+  total_price        Decimal  @db.Decimal(19, 4)
   quantity           Int      @db.Int
   card_number        String   @db.VarChar(255)
   card_exp_month     String   @db.VarChar(255)

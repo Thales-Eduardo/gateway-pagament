@@ -1,17 +1,26 @@
-//recebe o pedido de pagamento
-// producer
+//recebe o pedido de pagamento // producer
 import { AppErrors } from "../error/errors";
 import { InterfacePaymentRequestDtos } from "../interfaces/paymentRequest.dtos";
 import { producerOrderQueue } from "../kafka/producers/add-to-order-queue";
 import { PaymentRepository } from "../repository/PaymentRepository";
+import { Validator } from "../validation/validate.price";
 
-export class ReceivePaymentRequest {
-  constructor(private paymentRepository: PaymentRepository) {}
+export class ReceivePaymentRequest extends Validator {
+  private produto: InterfacePaymentRequestDtos["produto"] = {
+    product_id: "",
+    user_id: "",
+    price: 0,
+    quantity: 0,
+    total_price: 0,
+  };
+  private database: any = {};
 
-  private compareDecimals(a: string | number, b: unknown): boolean {
-    const numA = Number(parseFloat(String(a)).toFixed(4));
-    const numB = Number(parseFloat(String(b)).toFixed(4));
-    return numA === numB;
+  constructor(private paymentRepository: PaymentRepository) {
+    super();
+    this.validate({
+      database: this.database,
+      produto: this.produto,
+    });
   }
 
   async execute({
@@ -22,23 +31,9 @@ export class ReceivePaymentRequest {
     const findProduct = await this.paymentRepository.findbyIdProduct(
       produto.product_id
     );
-    if (!findProduct) {
-      throw new AppErrors("Produto não encontrado.");
-    }
-    if (produto.quantity <= 0) {
-      throw new AppErrors("Quantidade deve ser positiva");
-    }
-    if (produto.quantity > findProduct.quantity) {
-      throw new AppErrors(
-        `Quantidade indisponível. Solicitação: ${produto.quantity}, Disponível: ${findProduct.quantity}`
-      );
-    }
-
-    if (!this.compareDecimals(produto.price, findProduct.price)) {
-      throw new AppErrors(
-        `Preço inconsistente. Esperado: ${findProduct.price}, Recebido: ${produto.price}`
-      );
-    }
+    if (!findProduct) throw new AppErrors("Produto não encontrado.");
+    this.database = findProduct;
+    this.produto = produto;
 
     // verificar se usuário já tem um pedido igual ou menor que 2 minutos.
     const result = await this.paymentRepository.createPaymentRequest({

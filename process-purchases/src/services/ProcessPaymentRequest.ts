@@ -10,16 +10,15 @@ export class ProcessPaymentRequest {
     if (!data.anti_duplication) {
       throw new Error("Anti-duplication data is required.");
     }
-    console.log("ProcessPaymentRequest - data:", data);
-    // const antiDuplication = await this.paymentRepository.findAntiDuplication(
-    //   data.anti_duplication.id
-    // );
+    const antiDuplication = await this.paymentRepository.findAntiDuplication(
+      data.anti_duplication.id
+    );
 
-    // if (!antiDuplication || antiDuplication.process) return;
+    if (!antiDuplication || antiDuplication.process) return;
 
-    // await this.paymentRepository.checkAndUpdateOptimistic(
-    //   antiDuplication.id_transaction
-    // );
+    await this.paymentRepository.checkAndUpdateOptimistic(
+      antiDuplication.id_transaction
+    );
 
     // Enviar para o tópico para processar a compra
     await producerProcessPurchess({

@@ -11,6 +11,7 @@ interface RegisterPaymentRequestDTOs {
     user_id: string;
     price: number;
     quantity: number;
+    total_price: number;
   };
 
   card: {
@@ -61,6 +62,7 @@ export class PaymentRepository {
         user_id: produto.user_id,
         product_id: produto.product_id,
         price: produto.price,
+        total_price: produto.total_price,
         quantity: produto.quantity,
         status: StatusPayment.PENDING,
       },

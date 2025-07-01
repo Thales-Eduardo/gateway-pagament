@@ -18,6 +18,7 @@ describe("PaymentRepository", () => {
           user_id: "user_456",
           price: 100,
           quantity: 1,
+          total_price: 100,
         },
         card: {
           card_number: "4111111111111111",
@@ -47,6 +48,7 @@ describe("PaymentRepository", () => {
           user_id: "user_456",
           price: 100,
           quantity: 1,
+          total_price: 100,
         },
         card: {
           card_number: "4111111111111111",

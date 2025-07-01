@@ -4,6 +4,7 @@ export interface InterfacePaymentRequestDtos {
     user_id: string;
     price: number;
     quantity: number;
+    total_price: number;
   };
 
   card: {
