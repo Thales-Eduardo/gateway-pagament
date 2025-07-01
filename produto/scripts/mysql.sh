@@ -11,3 +11,4 @@ show tables;
 
 select * from product;
 select * from register_payment_request;
+select * from anti_duplication;

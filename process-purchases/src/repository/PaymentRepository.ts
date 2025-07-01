@@ -74,11 +74,15 @@ export class PaymentRepository {
     };
   }
 
-  async createRecordAntiDuplication(
-    id_transaction: string,
-    user_id: string,
-    process: boolean
-  ): Promise<string> {
+  async createRecordAntiDuplication({
+    id_transaction,
+    process,
+    user_id,
+  }: {
+    id_transaction: string;
+    user_id: string;
+    process: boolean;
+  }): Promise<string> {
     const createAntDuplication = await prismaClient.antiDuplication.create({
       data: {
         id_transaction,
@@ -123,9 +127,9 @@ export class PaymentRepository {
     });
   }
 
-  async findAntiDuplication(id: string) {
+  async findAntiDuplication(id_transaction: string) {
     return await prismaClient.antiDuplication.findUnique({
-      where: { id_transaction: id },
+      where: { id_transaction: id_transaction },
     });
   }
 

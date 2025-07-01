@@ -6,14 +6,14 @@ import "./kafka";
 import { consumerOrderQueue } from "./kafka/consumers/order-queue";
 import { consumerPurchasesProcessed } from "./kafka/consumers/purchases-processed";
 import { connectAllProducers, disconnectAllProducers } from "./kafka/producers";
-// import { router } from "./routes";
+import { router } from "./router";
 
 const app = express();
 const port = 3334;
 
 app.use(express.json());
 app.use(cors());
-// app.use(router);
+app.use(router);
 
 app.get("/", (req: any, res: any) => {
   return res.json({
@@ -25,7 +25,7 @@ app.get("/", (req: any, res: any) => {
 const errorHandler: ErrorRequestHandler = (err, req, res, next): any => {
   if (err instanceof AppErrors) {
     return res.json({
-      status: "error",
+      status: err.statusCode || "error",
       message: err.message,
     });
   }

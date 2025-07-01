@@ -14,7 +14,10 @@ export class ProcessPaymentRequest {
       data.anti_duplication.id
     );
 
-    if (!antiDuplication || antiDuplication.process) return;
+    if (!antiDuplication || antiDuplication.process) {
+      console.log("Pedido de pagamento já processado");
+      return;
+    }
 
     await this.paymentRepository.checkAndUpdateOptimistic(
       antiDuplication.id_transaction

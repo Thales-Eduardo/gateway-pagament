@@ -51,29 +51,29 @@ async function sendToDLQ(dlqPayload: any) {
   }
 }
 
-(async () => {
-  await producerOrderQueue({
-    produto: {
-      product_id: "123",
-      user_id: "1234",
-      price: 12,
-      quantity: 1,
-      total_price: 12,
-    },
+// (async () => {
+//   await producerOrderQueue({
+//     produto: {
+//       product_id: "123",
+//       user_id: "1234",
+//       price: 12,
+//       quantity: 1,
+//       total_price: 12,
+//     },
 
-    card: {
-      card_number: "214143",
-      card_exp_month: "tedaawdast",
-      card_exp_year: "dsaedad",
-      card_security_code: "123",
-    },
+//     card: {
+//       card_number: "214143",
+//       card_exp_month: "tedaawdast",
+//       card_exp_year: "dsaedad",
+//       card_security_code: "123",
+//     },
 
-    data: new Date(),
+//     data: new Date(),
 
-    anti_duplication: {
-      id: "anti_duplication_id",
-      user_id: "1234",
-      processed: false,
-    },
-  });
-})();
+//     anti_duplication: {
+//       id: "anti_duplication_id",
+//       user_id: "1234",
+//       processed: false,
+//     },
+//   });
+// })();

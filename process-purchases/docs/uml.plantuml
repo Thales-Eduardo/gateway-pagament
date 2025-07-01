@@ -18,7 +18,7 @@ AntiDup --> Gateway: Existe?
 alt Pedido similar existe
     Gateway --> Cliente: 409 Conflict
 else 
-    Gateway -> AntiDup: Insere\n(id_pedido, user_id, status: "PENDING")
+    Gateway -> AntiDup: Insere no topic\n(id_pedido, user_id, status: "PENDING")
     Gateway -> OrderQueue: Envia mensagem\n(id_pedido)
     Gateway --> Cliente: 202 Accepted
 end
@@ -38,7 +38,7 @@ alt Status já é "PROCESSED"
 else
     Processor -> Orders: Registra pedido
     Processor -> AntiDup: Atualiza status: "PROCESSED"  **// Ponto de não-retorno**
-    Processor -> ProcessPurchases: Envia para pagamento
+    Processor -> ProcessPurchases: Envia para processar o pagamento
     Processor -> OrderQueue: Commit offset
 end
 

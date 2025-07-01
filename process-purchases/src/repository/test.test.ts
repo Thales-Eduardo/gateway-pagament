@@ -69,7 +69,11 @@ describe("PaymentRepository", () => {
 
   describe("checkAndUpdateOptimistic", () => {
     it("deve retornar true quando o registro existe e process é false", async () => {
-      await paymentRepo.createRecordAntiDuplication("tx_123", "user_1", false);
+      await paymentRepo.createRecordAntiDuplication({
+        id_transaction: "tx_123",
+        user_id: "user_1",
+        process: false,
+      });
 
       const result = await paymentRepo.checkAndUpdateOptimistic("tx_123");
 
@@ -85,7 +89,11 @@ describe("PaymentRepository", () => {
     });
 
     it("deve retornar false quando o registro existe e process já é true", async () => {
-      await paymentRepo.createRecordAntiDuplication("tx_456", "user_2", true);
+      await paymentRepo.createRecordAntiDuplication({
+        id_transaction: "tx_456",
+        user_id: "user_2",
+        process: true,
+      });
 
       const result = await paymentRepo.checkAndUpdateOptimistic("tx_456");
 

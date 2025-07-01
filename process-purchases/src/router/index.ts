@@ -6,7 +6,7 @@ const receivePaymentRequest = new ReceivePaymentRequest(
   new PaymentRepository()
 );
 
-const router = Router();
+export const router = Router();
 
 router.put("/payment", async (req, res) => {
   const { produto, card } = req.body;
@@ -17,7 +17,7 @@ router.put("/payment", async (req, res) => {
     data: new Date(),
   });
 
-  res.status(200).json({
+  res.status(202).json({
     message: "Process Purchases Service is running",
   });
 });

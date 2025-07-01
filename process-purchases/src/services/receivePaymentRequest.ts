@@ -6,21 +6,10 @@ import { PaymentRepository } from "../repository/PaymentRepository";
 import { Validator } from "../validation/validate.price";
 
 export class ReceivePaymentRequest extends Validator {
-  private produto: InterfacePaymentRequestDtos["produto"] = {
-    product_id: "",
-    user_id: "",
-    price: 0,
-    quantity: 0,
-    total_price: 0,
-  };
   private database: any = {};
 
   constructor(private paymentRepository: PaymentRepository) {
     super();
-    this.validate({
-      database: this.database,
-      produto: this.produto,
-    });
   }
 
   async execute({
@@ -33,7 +22,10 @@ export class ReceivePaymentRequest extends Validator {
     );
     if (!findProduct) throw new AppErrors("Produto não encontrado.");
     this.database = findProduct;
-    this.produto = produto;
+    this.validate({
+      database: this.database,
+      produto: produto,
+    });
 
     // verificar se usuário já tem um pedido igual ou menor que 2 minutos.
     const result = await this.paymentRepository.createPaymentRequest({
@@ -42,15 +34,15 @@ export class ReceivePaymentRequest extends Validator {
       data,
     });
 
-    if (result) {
+    if (!result) {
       throw new AppErrors("Pedido de pagamento recusado, tente novamente.");
     }
 
-    await this.paymentRepository.createRecordAntiDuplication(
-      result.id, // ID register_payment_request
-      produto.user_id,
-      false
-    );
+    await this.paymentRepository.createRecordAntiDuplication({
+      id_transaction: result.id,
+      user_id: produto.user_id,
+      process: false,
+    });
 
     // Registra o pedido na fila.
     await producerOrderQueue({
