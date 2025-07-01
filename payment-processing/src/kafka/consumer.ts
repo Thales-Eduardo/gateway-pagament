@@ -66,7 +66,7 @@ export async function consumerProcessPaymentRequest() {
 
 async function consumerProcessPaymentRequestData(data: any) {
   console.log("consumer = process-purchases:", data);
-
+  // realizar pagamento, se der erro adicionar na DLQ
   return data;
 }
 
