@@ -6,7 +6,7 @@ export async function consumerPurchasesProcessed() {
   try {
     await consumerPurchases.connect();
     await consumerPurchases.subscribe({
-      topic: "purchases-processed",
+      topic: "process-purchases",
     });
 
     await consumerPurchases.run({
@@ -34,7 +34,7 @@ export async function consumerPurchasesProcessed() {
             error
           );
           await sendToDLQ({
-            originalTopic: "purchases-processed",
+            originalTopic: "process-purchases",
             originalMessage: message,
             error: {
               name: error.name,

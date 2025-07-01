@@ -4,7 +4,7 @@ import express, { ErrorRequestHandler } from "express";
 import { AppErrors } from "./error/errors";
 import "./kafka";
 import { consumerOrderQueue } from "./kafka/consumers/order-queue";
-import { consumerPurchasesProcessed } from "./kafka/consumers/purchases-processed";
+import { consumerPurchasesProcessed } from "./kafka/consumers/process-purchases";
 import { connectAllProducers, disconnectAllProducers } from "./kafka/producers";
 import { router } from "./router";
 
