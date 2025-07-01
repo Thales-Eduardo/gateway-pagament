@@ -1,15 +1,15 @@
 import { EachMessagePayload } from "kafkajs";
 import { producerDlq } from "../producers/index";
-import { consumerPurchases } from "./index";
+import { consumerPurchasesProcessed } from "./index";
 
-export async function consumerPurchasesProcessed() {
+export async function consumerUserPurchasesProcessed() {
   try {
-    await consumerPurchases.connect();
-    await consumerPurchases.subscribe({
-      topic: "process-purchases",
+    await consumerPurchasesProcessed.connect();
+    await consumerPurchasesProcessed.subscribe({
+      topic: "purchases-processed",
     });
 
-    await consumerPurchases.run({
+    await consumerPurchasesProcessed.run({
       eachMessage: async ({
         topic,
         partition,
@@ -20,11 +20,11 @@ export async function consumerPurchasesProcessed() {
           await heartbeat();
 
           const data = JSON.parse(message.value!.toString());
-          await consumerPurchasesProcessedData(data);
+          await consumerUserPurchasesProcessedData(data);
 
           await heartbeat();
 
-          await consumerPurchases.commitOffsets([
+          await consumerPurchasesProcessed.commitOffsets([
             { topic, partition, offset: message.offset },
           ]);
         } catch (error: any) {
@@ -34,7 +34,7 @@ export async function consumerPurchasesProcessed() {
             error
           );
           await sendToDLQ({
-            originalTopic: "process-purchases",
+            originalTopic: "purchases-processed",
             originalMessage: message,
             error: {
               name: error.name,
@@ -53,12 +53,12 @@ export async function consumerPurchasesProcessed() {
     });
   } catch (error) {
     console.error("Erro fatal, reiniciando em 10s...", error);
-    setTimeout(consumerPurchasesProcessed, 10000);
+    setTimeout(consumerUserPurchasesProcessed, 10000);
   }
 }
 
-async function consumerPurchasesProcessedData(data: any) {
-  //operação de regra de negocio com o banco de dados
+async function consumerUserPurchasesProcessedData(data: any) {
+  //atualizar o status do pedido de pagamento no banco de dados
   console.log("consumer = purchases-processed:", data);
 
   return data;

@@ -12,7 +12,7 @@ queue "dlq" as DLQ
 Cliente -> Gateway: POST /pedido {user_id, itens}
 activate Gateway
 
-Gateway -> AntiDup: Verifica pedidos recentes\n(user_id, últimos 1m)
+Gateway -> AntiDup: Verifica pedidos recentes\n(user_id, últimos 2m)
 AntiDup --> Gateway: Existe? 
 
 alt Pedido similar existe

@@ -35,7 +35,10 @@ export class ReceivePaymentRequest extends Validator {
     });
 
     if (!result) {
-      throw new AppErrors("Pedido de pagamento recusado, tente novamente.");
+      throw new AppErrors(
+        "Pedido de pagamento recusado, tente novamente.",
+        409
+      );
     }
 
     await this.paymentRepository.createRecordAntiDuplication({

@@ -12,7 +12,7 @@ export const consumerOrder = new Kafka().consumer({
   },
 });
 
-export const consumerPurchases = new Kafka().consumer({
+export const consumerPurchasesProcessed = new Kafka().consumer({
   kafkaJS: {
     brokers: ["localhost:9094"],
     clientId: "purchases_processed_consumer",

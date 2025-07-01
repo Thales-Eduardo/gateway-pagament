@@ -2,6 +2,7 @@ import cors from "cors";
 import "dotenv";
 import express, { ErrorRequestHandler } from "express";
 import { AppErrors } from "./error/errors";
+import { consumerProcessPaymentRequest } from "./kafka/consumer";
 // import { router } from "./router";
 
 const app = express();
@@ -36,13 +37,9 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next): any => {
 app.use(errorHandler);
 
 //consumer
-// (async () => {
-//   await Promise.all([
-//     consumerOrderQueue(),
-//     consumerPurchasesProcessed(),
-//     connectAllProducers(),
-//   ]);
-// })();
+(async () => {
+  await consumerProcessPaymentRequest();
+})();
 
 const server = app.listen(port, () => {
   console.log(`http://localhost:${port} 🔥🔥🚒`);
