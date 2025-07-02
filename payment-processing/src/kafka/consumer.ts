@@ -1,4 +1,6 @@
 import { EachMessagePayload } from "kafkajs";
+import { InterfacePaymentRequestDtos } from "../service/make_payment";
+import { processPaymentService } from "../service/processPayment.service";
 const { Kafka } = require("@confluentinc/kafka-javascript").KafkaJS;
 
 export const consumer = new Kafka().consumer({
@@ -58,15 +60,19 @@ export async function consumerProcessPaymentRequest() {
         }
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro fatal, reiniciando em 10s...", error);
     setTimeout(consumerProcessPaymentRequest, 10000);
   }
 }
 
-async function consumerProcessPaymentRequestData(data: any) {
-  console.log("consumer = process-purchases:", data);
-  // realizar pagamento, se der erro adicionar na DLQ
+async function consumerProcessPaymentRequestData(
+  data: InterfacePaymentRequestDtos
+) {
+  console.log("consumer = process-purchase:", data);
+
+  await processPaymentService(data);
+
   return data;
 }
 

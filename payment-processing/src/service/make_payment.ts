@@ -1,11 +1,30 @@
 import { api } from "./axios";
 
-export async function makePayment() {
+export interface InterfacePaymentRequestDtos {
+  produto: {
+    product_id: string;
+    user_id: string;
+    price: number;
+    quantity: number;
+    total_price: number;
+  };
+  card: {
+    card_number: string;
+    card_exp_month: string;
+    card_exp_year: string;
+    card_security_code: string;
+  };
+  data: Date;
+}
+
+export async function makePayment(
+  payment: InterfacePaymentRequestDtos
+): Promise<boolean> {
   const data = await api.post("/", {
-    reference_id: "ex-00001",
+    reference_id: payment.produto.user_id,
     description: "Motivo da cobrança",
     amount: {
-      value: 7171,
+      value: payment.produto.total_price,
       currency: "BRL",
     },
     payment_method: {
@@ -13,10 +32,10 @@ export async function makePayment() {
       installments: 1,
       capture: false,
       card: {
-        number: "4111111111111111",
-        exp_month: "03",
-        exp_year: "2026",
-        security_code: "123",
+        number: payment.card.card_number,
+        exp_month: payment.card.card_exp_month,
+        exp_year: payment.card.card_exp_year,
+        security_code: payment.card.card_security_code,
         holder: {
           name: "Jose da Silva",
         },
@@ -24,7 +43,7 @@ export async function makePayment() {
     },
   });
 
-  return data.data;
+  return data.data.status === "AUTHORIZED" ? true : false;
 }
 // Example usage:
 // (async () => {
