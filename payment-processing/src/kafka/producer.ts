@@ -21,6 +21,25 @@ export const producer = new Kafka().producer({
   },
 });
 
+export async function connectAllProducers() {
+  try {
+    await Promise.all([producer.connect(), producerDlq.connect()]);
+    console.log("✅ Todos os producers conectados");
+  } catch (error) {
+    console.error("⚠️ Erro ao conectar producers:", error);
+    throw error;
+  }
+}
+
+export async function disconnectAllProducers() {
+  try {
+    await Promise.all([producer.disconnect(), producerDlq.disconnect()]);
+    console.log("⏳ Producers desconectados");
+  } catch (error) {
+    console.error("⚠️ Erro ao desconectar producers:", error);
+  }
+}
+
 export async function producerProcessPurchess(
   message: InterfacePaymentRequestDtos
 ) {
@@ -43,35 +62,39 @@ export async function producerProcessPurchess(
 
     return metadata;
   } catch (error: any) {
-    await sendToDLQ({
-      originalTopic: "purchases-processed",
-      originalMessage: message,
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        code: error.code,
-      },
-      timestamp: new Date().toISOString(),
-    });
+    // await sendToDLQ({
+    //   originalTopic: "purchases-processed",
+    //   originalMessage: message,
+    //   error: {
+    //     name: error.name,
+    //     message: error.message,
+    //     stack: error.stack,
+    //     code: error.code,
+    //   },
+    //   timestamp: new Date().toISOString(),
+    // });
+    console.error(
+      "FALHA CRÍTICA: Erro ao enviar mensagem para o tópico purchases-processed",
+      error
+    );
   }
 }
 
-async function sendToDLQ(dlqPayload: any) {
-  try {
-    await producerDlq.send({
-      topic: "order_queue_dlq",
-      messages: [
-        {
-          value: JSON.stringify(dlqPayload),
-        },
-      ],
-    });
-    console.log("Mensagem enviada para DLQ");
-  } catch (dlqError: any) {
-    console.error("FALHA CRÍTICA: Erro ao enviar para DLQ", dlqError);
-  }
-}
+// async function sendToDLQ(dlqPayload: any) {
+//   try {
+//     await producerDlq.send({
+//       topic: "order_queue_dlq",
+//       messages: [
+//         {
+//           value: JSON.stringify(dlqPayload),
+//         },
+//       ],
+//     });
+//     console.log("Mensagem enviada para DLQ");
+//   } catch (dlqError: any) {
+//     console.error("FALHA CRÍTICA: Erro ao enviar para DLQ", dlqError);
+//   }
+// }
 
 // (async () => {
 //   producerProcessPurchess({

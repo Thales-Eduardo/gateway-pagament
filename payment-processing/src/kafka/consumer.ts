@@ -46,17 +46,17 @@ export async function consumerProcessPaymentRequest() {
             `Erro no tópico ${topic}, partição ${partition}, offset ${message.offset}:`,
             error
           );
-          await sendToDLQ({
-            originalTopic: "process-purchases",
-            originalMessage: message,
-            error: {
-              name: error.name,
-              message: error.message,
-              stack: error.stack,
-              code: error.code,
-            },
-            timestamp: new Date().toISOString(),
-          });
+          // await sendToDLQ({
+          //   originalTopic: "process-purchases",
+          //   originalMessage: message,
+          //   error: {
+          //     name: error.name,
+          //     message: error.message,
+          //     stack: error.stack,
+          //     code: error.code,
+          //   },
+          //   timestamp: new Date().toISOString(),
+          // });
         }
       },
     });
@@ -76,18 +76,18 @@ async function consumerProcessPaymentRequestData(
   return data;
 }
 
-async function sendToDLQ(dlqPayload: any) {
-  try {
-    // await producerDlq.send({
-    //   topic: "order_queue_consumer_dlq",
-    //   messages: [
-    //     {
-    //       value: JSON.stringify(dlqPayload),
-    //     },
-    //   ],
-    // });
-    console.log("Mensagem enviada para DLQ");
-  } catch (dlqError: any) {
-    console.error("FALHA CRÍTICA: Erro ao enviar para DLQ", dlqError);
-  }
-}
+// async function sendToDLQ(dlqPayload: any) {
+//   try {
+//     // await producerDlq.send({
+//     //   topic: "order_queue_consumer_dlq",
+//     //   messages: [
+//     //     {
+//     //       value: JSON.stringify(dlqPayload),
+//     //     },
+//     //   ],
+//     // });
+//     console.log("Mensagem enviada para DLQ");
+//   } catch (dlqError: any) {
+//     console.error("FALHA CRÍTICA: Erro ao enviar para DLQ", dlqError);
+//   }
+// }

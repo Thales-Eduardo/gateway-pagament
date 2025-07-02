@@ -3,6 +3,7 @@ import "dotenv";
 import express, { ErrorRequestHandler } from "express";
 import { AppErrors } from "./error/errors";
 import { consumerProcessPaymentRequest } from "./kafka/consumer";
+import { connectAllProducers, disconnectAllProducers } from "./kafka/producer";
 // import { router } from "./router";
 
 const app = express();
@@ -38,7 +39,7 @@ app.use(errorHandler);
 
 //consumer
 (async () => {
-  await consumerProcessPaymentRequest();
+  await Promise.all([consumerProcessPaymentRequest(), connectAllProducers()]);
 })();
 
 const server = app.listen(port, () => {
@@ -49,7 +50,7 @@ const server = app.listen(port, () => {
 function gracefulShutdown(event: any) {
   const data = new Date().toLocaleString();
   return async (code: any) => {
-    // await disconnectAllProducers();
+    await disconnectAllProducers();
     console.log(`${event} - server ending ${code}`, data);
     server.close(async () => {
       process.exit(0);

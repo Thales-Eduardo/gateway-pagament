@@ -20,11 +20,20 @@ export interface InterfacePaymentRequestDtos {
 export async function makePayment(
   payment: InterfacePaymentRequestDtos
 ): Promise<boolean> {
+  const num =
+    typeof payment.produto.total_price === "string"
+      ? parseFloat(payment.produto.total_price)
+      : payment.produto.total_price;
+
+  const fixed = num.toFixed(2);
+  const withoutDot = fixed.replace(".", "");
+  const formatValue = parseInt(withoutDot, 10);
+
   const data = await api.post("/", {
     reference_id: payment.produto.user_id,
     description: "Motivo da cobrança",
     amount: {
-      value: payment.produto.total_price,
+      value: formatValue,
       currency: "BRL",
     },
     payment_method: {
@@ -42,6 +51,8 @@ export async function makePayment(
       },
     },
   });
+
+  console.log("Payment response received:", data.data.status);
 
   return data.data.status === "AUTHORIZED" ? true : false;
 }
