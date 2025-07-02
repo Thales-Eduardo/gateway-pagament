@@ -24,7 +24,7 @@ interface RegisterPaymentRequestDTOs {
   data: Date;
 }
 
-enum StatusPayment {
+export enum StatusPayment {
   PENDING,
   PROCESSING,
   AUTHORIZED,
@@ -34,7 +34,6 @@ export class PaymentRepository {
   //melhorar qry at
   async createPaymentRequest({
     produto,
-    card,
     data,
   }: RegisterPaymentRequestDTOs): Promise<any> {
     const nowBr = DateTime.fromJSDate(data, { zone: "America/Sao_Paulo" });
@@ -55,10 +54,6 @@ export class PaymentRepository {
 
     const createdRecord = await prismaClient.registerPaymentRequest.create({
       data: {
-        card_exp_month: card.card_exp_month,
-        card_exp_year: card.card_exp_year,
-        card_number: card.card_number,
-        card_security_code: card.card_security_code,
         user_id: produto.user_id,
         product_id: produto.product_id,
         price: produto.price,
@@ -72,6 +67,21 @@ export class PaymentRepository {
       id: createdRecord.id,
       value: true,
     };
+  }
+
+  async updatePaymentRequest({
+    id_transaction,
+    status,
+  }: {
+    id_transaction: string;
+    status: StatusPayment;
+  }): Promise<any> {
+    const updatedRecord = await prismaClient.registerPaymentRequest.update({
+      where: { id: id_transaction },
+      data: { status: status },
+    });
+
+    return updatedRecord;
   }
 
   async createRecordAntiDuplication({

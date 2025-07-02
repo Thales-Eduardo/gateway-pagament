@@ -15,6 +15,12 @@ export interface InterfacePaymentRequestDtos {
     card_security_code: string;
   };
   data: Date;
+
+  anti_duplication?: {
+    id: string;
+    user_id: string;
+    processed: boolean;
+  };
 }
 
 export async function makePayment(

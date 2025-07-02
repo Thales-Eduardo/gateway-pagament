@@ -1,6 +1,13 @@
 import { EachMessagePayload } from "kafkajs";
+import { InterfacePaymentRequestDtos } from "../../interfaces/paymentRequest.dtos";
+import {
+  PaymentRepository,
+  StatusPayment,
+} from "../../repository/PaymentRepository";
 import { producerDlq } from "../producers/index";
 import { consumerPurchasesProcessed } from "./index";
+
+const paymentRepository = new PaymentRepository();
 
 export async function consumerUserPurchasesProcessed() {
   try {
@@ -57,9 +64,18 @@ export async function consumerUserPurchasesProcessed() {
   }
 }
 
-async function consumerUserPurchasesProcessedData(data: any) {
+async function consumerUserPurchasesProcessedData(
+  data: InterfacePaymentRequestDtos
+) {
   //atualizar o status do pedido de pagamento no banco de dados
   console.log("consumer = purchases-processed:", data);
+
+  if (!data.anti_duplication) return;
+
+  await paymentRepository.updatePaymentRequest({
+    id_transaction: String(data.anti_duplication.id),
+    status: StatusPayment.PENDING,
+  });
 
   return data;
 }

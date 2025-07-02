@@ -8,19 +8,15 @@ datasource db {
 }
 
 model RegisterPaymentRequest {
-  id                 String   @id @default(ulid())
-  product_id         String   @db.VarChar(255)
-  user_id            String   @db.VarChar(255)
-  price              Decimal  @db.Decimal(19, 4)
-  total_price        Decimal  @db.Decimal(19, 4)
-  quantity           Int      @db.Int
-  card_number        String   @db.VarChar(255)
-  card_exp_month     String   @db.VarChar(255)
-  card_exp_year      String   @db.VarChar(255)
-  card_security_code String   @db.VarChar(255)
-  status             Int      @db.Int
-  updatedAt          DateTime @updatedAt
-  createdAt          DateTime @default(now())
+  id          String   @id @default(ulid())
+  product_id  String   @db.VarChar(255)
+  user_id     String   @db.VarChar(255)
+  price       Decimal  @db.Decimal(19, 4)
+  total_price Decimal  @db.Decimal(19, 4)
+  quantity    Int      @db.Int
+  status      Int      @db.Int
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
 
   @@map("register_payment_request")
 }
