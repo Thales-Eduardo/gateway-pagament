@@ -67,14 +67,13 @@ export async function consumerUserPurchasesProcessed() {
 async function consumerUserPurchasesProcessedData(
   data: InterfacePaymentRequestDtos
 ) {
-  //atualizar o status do pedido de pagamento no banco de dados
+  if (!data.anti_duplication) return;
   console.log("consumer = purchases-processed:", data);
 
-  if (!data.anti_duplication) return;
-
+  //atualizar o status do pedido de pagamento no banco de dados
   await paymentRepository.updatePaymentRequest({
     id_transaction: String(data.anti_duplication.id),
-    status: StatusPayment.PENDING,
+    status: StatusPayment.AUTHORIZED,
   });
 
   return data;
