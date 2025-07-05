@@ -1,16 +1,30 @@
 import { producerProcessPurchess } from "../kafka/producers/producer";
-import { InterfacePaymentRequestDtos, makePayment } from "./make_payment";
+import { producerPaymentRetry } from "../kafka/producers/producer_payment_retry";
+import { InterfacePaymentRequestDtos } from "./make_payment";
 
 export async function processPaymentService(
   data: InterfacePaymentRequestDtos
-): Promise<InterfacePaymentRequestDtos> {
-  const result = await makePayment(data);
+): Promise<InterfacePaymentRequestDtos | undefined> {
+  const result = true; // Simulating payment processing success for demonstration purposes
+
+  // const result = await makePayment(data);
 
   if (!result) {
-    // registrarErroPagamento(data);
-    console.log("Pagamento não autorizado, enviando para DLQ");
-  }
+    await producerPaymentRetry({
+      originalTopic: "purchases-processed",
+      originalMessage: data,
+      error: {
+        name: "processPaymentService",
+        message: "Failed to process.",
+        stack: "Error: Failed to process",
+        code: "PaymentProcessingError",
+      },
+      timestamp: new Date().toISOString(),
+    });
 
+    return;
+  }
   await producerProcessPurchess(data);
+
   return data;
 }

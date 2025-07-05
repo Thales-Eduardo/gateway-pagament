@@ -70,7 +70,7 @@ export async function consumerProcessPaymentRequest() {
 async function consumerProcessPaymentRequestData(
   data: InterfacePaymentRequestDtos
 ) {
-  console.log("consumer = process-purchase:", data);
+  console.log("consumer = process-purchases:", data);
 
   await processPaymentService(data);
 
