@@ -3,6 +3,7 @@ import "dotenv";
 import express, { ErrorRequestHandler } from "express";
 import { AppErrors } from "./error/errors";
 import "./kafka";
+import { consumerPaymentRetryQueue } from "./kafka/consumers/consumer_payment_retry";
 import { consumerOrderQueue } from "./kafka/consumers/order-queue";
 import { consumerUserPurchasesProcessed } from "./kafka/consumers/process-purchased";
 import { connectAllProducers, disconnectAllProducers } from "./kafka/producers";
@@ -44,6 +45,7 @@ app.use(errorHandler);
   await Promise.all([
     consumerOrderQueue(),
     consumerUserPurchasesProcessed(),
+    consumerPaymentRetryQueue(),
     connectAllProducers(),
   ]);
 })();

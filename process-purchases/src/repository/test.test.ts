@@ -75,7 +75,10 @@ describe("PaymentRepository", () => {
         process: false,
       });
 
-      const result = await paymentRepo.checkAndUpdateOptimistic("tx_123");
+      const result = await paymentRepo.checkAndUpdateOptimistic({
+        id_transaction: "tx_123",
+        process: false,
+      });
 
       expect(result).toEqual({
         value: true,
@@ -95,7 +98,10 @@ describe("PaymentRepository", () => {
         process: true,
       });
 
-      const result = await paymentRepo.checkAndUpdateOptimistic("tx_456");
+      const result = await paymentRepo.checkAndUpdateOptimistic({
+        id_transaction: "tx_456",
+        process: true,
+      });
 
       expect(result).toEqual({
         value: false,
@@ -107,9 +113,10 @@ describe("PaymentRepository", () => {
     });
 
     it("deve retornar false quando o registro não existe", async () => {
-      const result = await paymentRepo.checkAndUpdateOptimistic(
-        "tx_inexistente"
-      );
+      const result = await paymentRepo.checkAndUpdateOptimistic({
+        id_transaction: "tx_inexistente",
+        process: false,
+      });
 
       expect(result).toEqual({
         value: false,

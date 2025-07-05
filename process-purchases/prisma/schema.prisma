@@ -17,6 +17,7 @@ model RegisterPaymentRequest {
   status      Int      @db.Int
   updatedAt   DateTime @updatedAt
   createdAt   DateTime @default(now())
+  retry_count Int?     @default(0)
 
   @@map("register_payment_request")
 }

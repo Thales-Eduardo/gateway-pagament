@@ -1,5 +1,9 @@
 import { EachMessagePayload } from "kafkajs";
+import { PaymentRepository } from "../../repository/PaymentRepository";
+import { RetryPagamentService } from "../../services/retryPagamentService";
 import { consumerPaymentRetry } from "./index";
+
+const retryService = new RetryPagamentService(new PaymentRepository());
 
 const MAX_RETRY_COUNT = 5; // Define o número máximo de tentativas
 
@@ -10,7 +14,6 @@ export async function consumerPaymentRetryQueue() {
       topic: "payment_retry",
     });
 
-    console.log("messages:");
     await consumerPaymentRetry.run({
       eachMessage: async ({
         topic,
@@ -20,13 +23,21 @@ export async function consumerPaymentRetryQueue() {
       }: EachMessagePayload) => {
         try {
           await heartbeat();
+          const data = JSON.parse(message.value!.toString());
 
-          const headers = message.headers;
-          const retryCountStr = headers?.retry_count?.toString() ?? "0";
-          const count = parseInt(retryCountStr, 10);
-          const nextRetry = count + 1;
+          const result = await retryService.checkCount(
+            data.originalMessage.anti_duplication.id
+          );
+          console.log("result:", result);
 
-          if (nextRetry >= MAX_RETRY_COUNT) {
+          if (!result) {
+            await consumerPaymentRetry.commitOffsets([
+              { topic, partition, offset: message.offset },
+            ]);
+            console.log("adicionar dlq");
+            return;
+          }
+          if (result >= MAX_RETRY_COUNT) {
             await consumerPaymentRetry.commitOffsets([
               { topic, partition, offset: message.offset },
             ]);
@@ -34,23 +45,14 @@ export async function consumerPaymentRetryQueue() {
             console.log("adicionar dlq");
             return;
           }
-
-          const data = JSON.parse(message.value!.toString());
-          await consumerPaymentRetryQueueData(data, nextRetry);
+          await consumerPaymentRetryQueueData(data);
 
           await heartbeat();
 
           await consumerPaymentRetry.commitOffsets([
             { topic, partition, offset: message.offset },
           ]);
-          console.log(
-            "nextRetry:",
-            nextRetry,
-            "data",
-            new Date().toLocaleTimeString(),
-            "message:",
-            data
-          );
+
           // await producerOrderQueue({ message: data, count: nextRetry });
         } catch (error: any) {
           await heartbeat();
@@ -79,28 +81,13 @@ export async function consumerPaymentRetryQueue() {
     });
   } catch (error) {
     console.error("Erro fatal, reiniciando em 10s...", error);
-    // setTimeout(consumerPaymentRetryQueue, 10000);
+    setTimeout(consumerPaymentRetryQueue, 10000);
   }
 }
 
-async function consumerPaymentRetryQueueData(data: any, nextRetry: number) {
-  // enviar para o topic de payment_retry
-  // console.log("consumer = payment_retry:", data, "nextRetry:", nextRetry);
+async function consumerPaymentRetryQueueData(data: any) {
+  console.log("data", new Date().toLocaleTimeString());
+  await retryService.execute(data);
 
-  // await producerPaymentRetry({
-  //   originalTopic: "payment_retry",
-  //   originalMessage: data,
-  //   error: {
-  //     name: "MaxRetriesExceeded",
-  //     message: "Maximum retry attempts exceeded",
-  //     stack: new Error().stack,
-  //     code: "MAX_RETRIES_EXCEEDED",
-  //   },
-  //   timestamp: new Date().toISOString(),
-  // });
   return data;
 }
-
-(async () => {
-  await consumerPaymentRetryQueue();
-})();

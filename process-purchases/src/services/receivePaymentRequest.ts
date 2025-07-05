@@ -49,15 +49,13 @@ export class ReceivePaymentRequest extends Validator {
 
     // Registra o pedido na fila.
     await producerOrderQueue({
-      message: {
-        produto,
-        card,
-        data,
-        anti_duplication: {
-          id: result.id,
-          user_id: produto.user_id,
-          processed: false,
-        },
+      produto,
+      card,
+      data,
+      anti_duplication: {
+        id: result.id,
+        user_id: produto.user_id,
+        processed: false,
       },
     });
   }

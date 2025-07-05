@@ -104,14 +104,19 @@ export class PaymentRepository {
     return createAntDuplication.id_transaction;
   }
 
-  async checkAndUpdateOptimistic(id_transaction: string): Promise<any> {
+  async checkAndUpdateOptimistic({
+    id_transaction,
+    process,
+  }: {
+    id_transaction: string;
+    process: boolean;
+  }): Promise<any> {
     const updateResult = await prismaClient.antiDuplication.updateMany({
       where: {
         id_transaction: id_transaction,
-        process: false, // Só atualiza se for false
       },
       data: {
-        process: true, // Atualiza para true
+        process: process, // Atualiza
       },
     });
 
@@ -121,6 +126,21 @@ export class PaymentRepository {
       value: updateResult.count === 1 ? true : false,
       id_transaction,
     };
+  }
+
+  async updateRetryCount(id_transaction: string): Promise<any> {
+    const updated = await prismaClient.registerPaymentRequest.update({
+      where: {
+        id: id_transaction,
+      },
+      data: {
+        retry_count: {
+          increment: 1,
+        },
+      },
+    });
+
+    return updated;
   }
 
   async deleteAntDuplication() {

@@ -23,9 +23,10 @@ export class ProcessPaymentRequest {
     }
 
     await Promise.all([
-      this.paymentRepository.checkAndUpdateOptimistic(
-        antiDuplication.id_transaction
-      ),
+      this.paymentRepository.checkAndUpdateOptimistic({
+        id_transaction: antiDuplication.id_transaction,
+        process: true,
+      }),
       this.paymentRepository.updatePaymentRequest({
         id_transaction: antiDuplication.id_transaction,
         status: StatusPayment.PENDING,
