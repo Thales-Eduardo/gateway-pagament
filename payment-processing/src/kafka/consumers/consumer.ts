@@ -1,6 +1,7 @@
 import { EachMessagePayload } from "kafkajs";
 import { InterfacePaymentRequestDtos } from "../../service/make_payment";
 import { processPaymentService } from "../../service/processPayment.service";
+import { producerPaymentRetry } from "../producers/producer_payment_retry";
 const { Kafka } = require("@confluentinc/kafka-javascript").KafkaJS;
 
 export const consumer = new Kafka().consumer({
@@ -46,17 +47,17 @@ export async function consumerProcessPaymentRequest() {
             `Erro no tópico ${topic}, partição ${partition}, offset ${message.offset}:`,
             error
           );
-          // await sendToDLQ({
-          //   originalTopic: "process-purchases",
-          //   originalMessage: message,
-          //   error: {
-          //     name: error.name,
-          //     message: error.message,
-          //     stack: error.stack,
-          //     code: error.code,
-          //   },
-          //   timestamp: new Date().toISOString(),
-          // });
+          await producerPaymentRetry({
+            originalTopic: "process-purchases",
+            originalMessage: JSON.parse(message.value!.toString()),
+            error: {
+              name: error.name,
+              message: error.message,
+              stack: error.stack,
+              code: error.code,
+            },
+            timestamp: new Date().toISOString(),
+          });
         }
       },
     });
@@ -75,19 +76,3 @@ async function consumerProcessPaymentRequestData(
 
   return data;
 }
-
-// async function sendToDLQ(dlqPayload: any) {
-//   try {
-//     // await producerDlq.send({
-//     //   topic: "order_queue_consumer_dlq",
-//     //   messages: [
-//     //     {
-//     //       value: JSON.stringify(dlqPayload),
-//     //     },
-//     //   ],
-//     // });
-//     console.log("Mensagem enviada para DLQ");
-//   } catch (dlqError: any) {
-//     console.error("FALHA CRÍTICA: Erro ao enviar para DLQ", dlqError);
-//   }
-// }

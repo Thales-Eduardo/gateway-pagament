@@ -1,4 +1,5 @@
 import { InterfacePaymentRequestDtos } from "../../service/make_payment";
+import { producerPaymentRetry } from "./producer_payment_retry";
 import { producer } from "./producer_start";
 
 export async function producerProcessPurchess(
@@ -23,39 +24,23 @@ export async function producerProcessPurchess(
 
     return metadata;
   } catch (error: any) {
-    // await sendToDLQ({
-    //   originalTopic: "purchases-processed",
-    //   originalMessage: message,
-    //   error: {
-    //     name: error.name,
-    //     message: error.message,
-    //     stack: error.stack,
-    //     code: error.code,
-    //   },
-    //   timestamp: new Date().toISOString(),
-    // });
+    await producerPaymentRetry({
+      originalTopic: "purchases-processed",
+      originalMessage: message,
+      error: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        code: error.code,
+      },
+      timestamp: new Date().toISOString(),
+    });
     console.error(
       "FALHA CRÍTICA: Erro ao enviar mensagem para o tópico purchases-processed",
       error
     );
   }
 }
-
-// async function sendToDLQ(dlqPayload: any) {
-//   try {
-//     await producerDlq.send({
-//       topic: "order_queue_dlq",
-//       messages: [
-//         {
-//           value: JSON.stringify(dlqPayload),
-//         },
-//       ],
-//     });
-//     console.log("Mensagem enviada para DLQ");
-//   } catch (dlqError: any) {
-//     console.error("FALHA CRÍTICA: Erro ao enviar para DLQ", dlqError);
-//   }
-// }
 
 // (async () => {
 //   producerProcessPurchess({

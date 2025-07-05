@@ -14,7 +14,7 @@ interface InterfacePaymentRetry {
 }
 
 export async function producerPaymentRetry(data: InterfacePaymentRetry) {
-  await producer.connect(); //desabilitar para testar
+  // await producer.connect(); //desabilitar para testar
 
   try {
     const metadata = await producer.send({
@@ -37,33 +37,33 @@ export async function producerPaymentRetry(data: InterfacePaymentRetry) {
   }
 }
 
-(async () => {
-  producerPaymentRetry({
-    originalTopic: "purchases-processed",
-    originalMessage: {
-      produto: {
-        product_id: "01JZ5VX50DYEGCF55ZZ9KZ9SQA",
-        user_id: "86464d8f-f500-4226-990b-0ce83bf7e829",
-        price: 12,
-        quantity: 1,
-        total_price: 12,
-      },
+// (async () => {
+//   producerPaymentRetry({
+//     originalTopic: "purchases-processed",
+//     originalMessage: {
+//       produto: {
+//         product_id: "01JZ5VX50DYEGCF55ZZ9KZ9SQA",
+//         user_id: "86464d8f-f500-4226-990b-0ce83bf7e829",
+//         price: 12,
+//         quantity: 1,
+//         total_price: 12,
+//       },
 
-      card: {
-        card_number: "4111111111111111",
-        card_exp_month: "03",
-        card_exp_year: "2026",
-        card_security_code: "123",
-      },
+//       card: {
+//         card_number: "4111111111111111",
+//         card_exp_month: "03",
+//         card_exp_year: "2026",
+//         card_security_code: "123",
+//       },
 
-      data: new Date(),
-    },
-    error: {
-      name: "PaymentProcessingError",
-      message: "Failed to process.",
-      stack: "Error: Failed to process",
-      code: "PaymentProcessingError",
-    },
-    timestamp: new Date().toISOString(),
-  });
-})();
+//       data: new Date(),
+//     },
+//     error: {
+//       name: "PaymentProcessingError",
+//       message: "Failed to process.",
+//       stack: "Error: Failed to process",
+//       code: "PaymentProcessingError",
+//     },
+//     timestamp: new Date().toISOString(),
+//   });
+// })();

@@ -1,4 +1,4 @@
-import { producerProcessPurchess } from "../kafka/producer";
+import { producerProcessPurchess } from "../kafka/producers/producer";
 import { InterfacePaymentRequestDtos, makePayment } from "./make_payment";
 
 export async function processPaymentService(

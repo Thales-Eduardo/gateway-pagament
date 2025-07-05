@@ -6,7 +6,8 @@ import { consumerProcessPaymentRequest } from "./kafka/consumers/consumer";
 import {
   connectAllProducers,
   disconnectAllProducers,
-} from "./kafka/producers/producer";
+} from "./kafka/producers/producer_start";
+
 // import { router } from "./router";
 
 const app = express();
