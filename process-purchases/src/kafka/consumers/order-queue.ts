@@ -1,7 +1,7 @@
 import { EachMessagePayload } from "kafkajs";
 import { PaymentRepository } from "../../repository/PaymentRepository";
 import { ProcessPaymentRequest } from "../../services/ProcessPaymentRequest";
-import { producerDlq } from "../producers/index";
+import { producerPaymentRetry } from "../producers/payment_retry";
 import { consumerOrder } from "./index";
 
 const paymentRepository = new PaymentRepository();
@@ -38,9 +38,9 @@ export async function consumerOrderQueue() {
             `Erro no tópico ${topic}, partição ${partition}, offset ${message.offset}:`,
             error
           );
-          await sendToDLQ({
+          await producerPaymentRetry({
             originalTopic: "order_queue",
-            originalMessage: message,
+            originalMessage: JSON.parse(message.value!.toString()),
             error: {
               name: error.name,
               message: error.message,
@@ -67,20 +67,4 @@ async function consumerOrderQueueData(data: any) {
   console.log("consumer = order_queue:", data);
 
   return data;
-}
-
-async function sendToDLQ(dlqPayload: any) {
-  try {
-    await producerDlq.send({
-      topic: "order_queue_consumer_dlq",
-      messages: [
-        {
-          value: JSON.stringify(dlqPayload),
-        },
-      ],
-    });
-    console.log("Mensagem enviada para DLQ");
-  } catch (dlqError: any) {
-    console.error("FALHA CRÍTICA: Erro ao enviar para DLQ", dlqError);
-  }
 }

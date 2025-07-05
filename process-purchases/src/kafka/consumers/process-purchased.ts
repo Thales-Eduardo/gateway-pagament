@@ -4,7 +4,7 @@ import {
   PaymentRepository,
   StatusPayment,
 } from "../../repository/PaymentRepository";
-import { producerDlq } from "../producers/index";
+import { producerPaymentRetry } from "../producers/payment_retry";
 import { consumerPurchasesProcessed } from "./index";
 
 const paymentRepository = new PaymentRepository();
@@ -40,9 +40,9 @@ export async function consumerUserPurchasesProcessed() {
             `Erro no tópico ${topic}, partição ${partition}, offset ${message.offset}:`,
             error
           );
-          await sendToDLQ({
+          await producerPaymentRetry({
             originalTopic: "purchases-processed",
-            originalMessage: message,
+            originalMessage: JSON.parse(message.value!.toString()),
             error: {
               name: error.name,
               message: error.message,
@@ -77,20 +77,4 @@ async function consumerUserPurchasesProcessedData(
   });
 
   return data;
-}
-
-async function sendToDLQ(dlqPayload: any) {
-  try {
-    await producerDlq.send({
-      topic: "order_queue_consumer_dlq",
-      messages: [
-        {
-          value: JSON.stringify(dlqPayload),
-        },
-      ],
-    });
-    console.log("Mensagem enviada para DLQ");
-  } catch (dlqError: any) {
-    console.error("FALHA CRÍTICA: Erro ao enviar para DLQ", dlqError);
-  }
 }

@@ -1,5 +1,6 @@
 import { InterfacePaymentRequestDtos } from "../../interfaces/paymentRequest.dtos";
-import { producerProcessPurchess as producer, producerDlq } from "./index";
+import { producerProcessPurchess as producer } from "./index";
+import { producerPaymentRetry } from "./payment_retry";
 
 export async function producerProcessPurchess(
   message: InterfacePaymentRequestDtos
@@ -23,7 +24,7 @@ export async function producerProcessPurchess(
 
     return metadata;
   } catch (error: any) {
-    await sendToDLQ({
+    await producerPaymentRetry({
       originalTopic: "process-purchases",
       originalMessage: message,
       error: {
@@ -34,22 +35,6 @@ export async function producerProcessPurchess(
       },
       timestamp: new Date().toISOString(),
     });
-  }
-}
-
-async function sendToDLQ(dlqPayload: any) {
-  try {
-    await producerDlq.send({
-      topic: "order_queue_dlq",
-      messages: [
-        {
-          value: JSON.stringify(dlqPayload),
-        },
-      ],
-    });
-    console.log("Mensagem enviada para DLQ");
-  } catch (dlqError: any) {
-    console.error("FALHA CRÍTICA: Erro ao enviar para DLQ", dlqError);
   }
 }
 
