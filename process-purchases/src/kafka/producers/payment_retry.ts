@@ -14,7 +14,7 @@ interface InterfacePaymentRetry {
 }
 
 export async function producerPaymentRetry(data: InterfacePaymentRetry) {
-  await producer.connect(); //desabilitar para testar
+  // await producer.connect(); //desabilitar para testar
 
   try {
     const metadata = await producer.send({

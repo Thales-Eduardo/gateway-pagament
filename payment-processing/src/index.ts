@@ -2,8 +2,11 @@ import cors from "cors";
 import "dotenv";
 import express, { ErrorRequestHandler } from "express";
 import { AppErrors } from "./error/errors";
-import { consumerProcessPaymentRequest } from "./kafka/consumer";
-import { connectAllProducers, disconnectAllProducers } from "./kafka/producer";
+import { consumerProcessPaymentRequest } from "./kafka/consumers/consumer";
+import {
+  connectAllProducers,
+  disconnectAllProducers,
+} from "./kafka/producers/producer";
 // import { router } from "./router";
 
 const app = express();

@@ -1,6 +1,6 @@
 import { EachMessagePayload } from "kafkajs";
-import { InterfacePaymentRequestDtos } from "../service/make_payment";
-import { processPaymentService } from "../service/processPayment.service";
+import { InterfacePaymentRequestDtos } from "../../service/make_payment";
+import { processPaymentService } from "../../service/processPayment.service";
 const { Kafka } = require("@confluentinc/kafka-javascript").KafkaJS;
 
 export const consumer = new Kafka().consumer({
