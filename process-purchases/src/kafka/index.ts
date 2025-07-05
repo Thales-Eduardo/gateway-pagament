@@ -32,14 +32,20 @@ const kafka = new Kafka({
       replicationFactor: 1,
     },
     {
-      topic: "order_queue_dlq", // erro na fila de pedidos
+      topic: "payment_retry", // erro no processamento de pagamentos
       numPartitions: 2,
       replicationFactor: 1,
+      config: {
+        "message.timestamp.type": "LogAppendTime",
+      },
     },
     {
-      topic: "order_queue_consumer_dlq", // erro no consumidor de pedidos
+      topic: "payment_dlq", // para erros definitivos no processamento de pagamentos
       numPartitions: 2,
       replicationFactor: 1,
+      config: {
+        "retention.ms": "-1", // Retenção infinita
+      },
     },
   ];
 

@@ -1,4 +1,4 @@
-@startuml enhanced_process_purchases_flow_v2
+@startuml payment_gateway_flow
 
 actor Cliente
 participant "API Gateway" as Gateway
@@ -7,87 +7,69 @@ queue "order_queue" as OrderQueue
 participant "Processador" as Processor
 database "Tabela Pedidos" as Orders
 queue "process-purchases" as ProcessPurchases
-queue "dlq" as DLQ
+queue "purchases-processed" as PurchasesProcessed
+queue "payment_retry" as PaymentRetry
+queue "payment_dlq" as PaymentDLQ
+participant "Sistema de Monitoramento" as Monitoring
 
-== Melhorias no Gateway ==
-
-Cliente -> Gateway: POST /pedido\n{ idempotency_key,\nuser_id, itens }
+Cliente -> Gateway: POST /pedido {user_id, itens}
 activate Gateway
 
-Gateway -> Gateway: 1. Valida payload (schema)
-alt Dados inválidos
-    Gateway --> Cliente: 400 Bad Request
-    deactivate Gateway
-    return
-end
+Gateway -> AntiDup: Verifica pedidos recentes\n(user_id, últimos 2m)
+AntiDup --> Gateway: Existe? 
 
-Gateway -> Gateway: 2. Autenticação JWT
-alt Não autorizado
-    Gateway --> Cliente: 401 Unauthorized
-    deactivate Gateway
-    return
-end
-
-Gateway -> AntiDup: 3. Busca idempotency_key
-AntiDup --> Gateway: Pedido existente?
-
-alt Pedido existente (qualquer status)
-    Gateway --> Cliente: 409 Conflict\n+ Dados do pedido
-    deactivate Gateway
-    return
+alt Pedido similar existe
+    Gateway --> Cliente: 409 Conflict
 else 
-    Gateway -> AntiDup: Insere pedido\n(idempotency_key, status: "PENDING")\n**TTL: 24h**
-    Gateway -> OrderQueue: Envia mensagem\n(id_pedido, idempotency_key)
+    Gateway -> AntiDup: Insere registro\n(id_pedido, user_id, status: "PENDING")
+    Gateway -> OrderQueue: Envia mensagem\n**Headers:**\nretry_count=0, message_id=UUID
     Gateway --> Cliente: 202 Accepted
-    Gateway -> Gateway: **Log/Métrica:**\nPedido aceito
 end
 
 deactivate Gateway
 
 ...
 
-== Processador Aprimorado ==
-
-OrderQueue -> Processor: Consome mensagem\n(id_pedido, idempotency_key)
+OrderQueue -> Processor: Consome mensagem
 activate Processor
 
-Processor -> AntiDup: Busca por idempotency_key
+Processor -> AntiDup: Busca status\n(id_pedido)
 AntiDup --> Processor: Status
 
-alt Status = "PROCESSED"
-    Processor --> OrderQueue: Commit imediato
-    Processor -> Processor: **Log/Métrica:**\nDuplicata ignorada
-    deactivate Processor
-    return
-end
-
-group Processamento Atômico
+alt Status já é "PROCESSED"
+    Processor -> Processor: **Ignora mensagem (idempotência)**
+    Processor -> Monitoring: metric_processed_duplicate_total++
+    Processor --> OrderQueue: Commit offset
+else
     Processor -> Orders: Registra pedido
-    Processor -> AntiDup: Atualiza status: "PROCESSED" **<<Ponto de Não-Retorno>>**
-    Processor -> ProcessPurchases: Envia pagamento\n**+ correlation_id**
+    Processor -> AntiDup: Atualiza status: "PROCESSED"
+    Processor -> ProcessPurchases: Envia pagamento\n**Headers:**\nretry_count=0, parent_id=message_id
+    Processor -> Monitoring: metric_processed_success_total++
+    Processor -> OrderQueue: Commit offset
 end
 
-alt Sucesso
-    Processor -> OrderQueue: **Commit offset**\n(após conclusão)
-    Processor -> Processor: **Log/Métrica:**\nSucesso
-else Erro
-    Processor -> Processor: **Log/Métrica detalhada:**\n- Erro\n- Stack trace\n- Payload
-    alt retry_count < 3
-        Processor -> Processor: **Backoff exponencial**
-        Processor -> OrderQueue: Reenfileira com delay
-    else
-        Processor -> DLQ: Envia mensagem **enriquecida:**\n- Payload original\n- Erro\n- Timestamps
+...
+
+group Tratamento de Erros (Unificado)
+    Processor -> Processor: Detectou erro\n(consumer/producer/pagamento)
+    Processor -> Processor: Obtém header\nretry_count (default=0)
+    alt retry_count < MAX_RETRIES
+        Processor -> Processor: Incrementa retry_count\nNovo delay exponencial
+        Processor -> PaymentRetry: Publica com novo header\ne delay calculado
+        Processor -> Monitoring: metric_retry_total++
         Processor -> OrderQueue: Commit offset
-        Processor -> Processor: **Notifica DLQ**
+    else
+        Processor -> PaymentDLQ: Publica mensagem\n**Headers:**\nerror_details=...
+        Processor -> Monitoring: metric_dlq_total++
+        Processor -> OrderQueue: Commit offset
     end
 end
 
 deactivate Processor
 
-== Monitoramento ==
+...
 
-Gateway -> Métricas: Prometheus/Grafana
-Processor -> Métricas: Prometheus/Grafana
-DLQ -> Monitor: Alerta Slack/Email
+PaymentRetry --> Processor: Mensagem re-agendada\n(após delay configurado)
+Processor -> Processor: Reprocessamento\nautomático
 
 @enduml

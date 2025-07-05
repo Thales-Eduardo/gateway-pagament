@@ -30,12 +30,23 @@ export const producerDlq = new Kafka().producer({
   },
 });
 
+export const producerPaymentRetry = new Kafka().producer({
+  kafkaJS: {
+    brokers: ["localhost:9094"],
+    ssl: false,
+    acks: -1,
+    retry: { retries: 10 },
+    transactionTimeout: 60000,
+  },
+});
+
 export async function connectAllProducers() {
   try {
     await Promise.all([
       producerOrderQueue.connect(),
       producerProcessPurchess.connect(),
       producerDlq.connect(),
+      producerPaymentRetry.connect(),
     ]);
     console.log("✅ Todos os producers conectados");
   } catch (error) {
