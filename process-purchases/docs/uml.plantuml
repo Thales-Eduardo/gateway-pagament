@@ -1,4 +1,4 @@
-@startuml enhanced_process_purchases_flow
+@startuml enhanced_process_purchases_flow_v2
 
 actor Cliente
 participant "API Gateway" as Gateway
@@ -9,48 +9,85 @@ database "Tabela Pedidos" as Orders
 queue "process-purchases" as ProcessPurchases
 queue "dlq" as DLQ
 
-Cliente -> Gateway: POST /pedido {user_id, itens}
+== Melhorias no Gateway ==
+
+Cliente -> Gateway: POST /pedido\n{ idempotency_key,\nuser_id, itens }
 activate Gateway
 
-Gateway -> AntiDup: Verifica pedidos recentes\n(user_id, últimos 2m)
-AntiDup --> Gateway: Existe? 
+Gateway -> Gateway: 1. Valida payload (schema)
+alt Dados inválidos
+    Gateway --> Cliente: 400 Bad Request
+    deactivate Gateway
+    return
+end
 
-alt Pedido similar existe
-    Gateway --> Cliente: 409 Conflict
+Gateway -> Gateway: 2. Autenticação JWT
+alt Não autorizado
+    Gateway --> Cliente: 401 Unauthorized
+    deactivate Gateway
+    return
+end
+
+Gateway -> AntiDup: 3. Busca idempotency_key
+AntiDup --> Gateway: Pedido existente?
+
+alt Pedido existente (qualquer status)
+    Gateway --> Cliente: 409 Conflict\n+ Dados do pedido
+    deactivate Gateway
+    return
 else 
-    Gateway -> AntiDup: Insere no topic\n(id_pedido, user_id, status: "PENDING")
-    Gateway -> OrderQueue: Envia mensagem\n(id_pedido)
+    Gateway -> AntiDup: Insere pedido\n(idempotency_key, status: "PENDING")\n**TTL: 24h**
+    Gateway -> OrderQueue: Envia mensagem\n(id_pedido, idempotency_key)
     Gateway --> Cliente: 202 Accepted
+    Gateway -> Gateway: **Log/Métrica:**\nPedido aceito
 end
 
 deactivate Gateway
 
 ...
 
-OrderQueue -> Processor: Consome mensagem
+== Processador Aprimorado ==
+
+OrderQueue -> Processor: Consome mensagem\n(id_pedido, idempotency_key)
 activate Processor
 
-Processor -> AntiDup: Busca status\n(id_pedido)
+Processor -> AntiDup: Busca por idempotency_key
 AntiDup --> Processor: Status
 
-alt Status já é "PROCESSED"
-    Processor --> OrderQueue: **Commit imediato**
-else
-    Processor -> Orders: Registra pedido
-    Processor -> AntiDup: Atualiza status: "PROCESSED"  **// Ponto de não-retorno**
-    Processor -> ProcessPurchases: Envia para processar o pagamento
-    Processor -> OrderQueue: Commit offset
+alt Status = "PROCESSED"
+    Processor --> OrderQueue: Commit imediato
+    Processor -> Processor: **Log/Métrica:**\nDuplicata ignorada
+    deactivate Processor
+    return
 end
 
-alt Erro durante processamento
-    Processor -> Processor: Log error + metrics
-    alt Erro transitório
+group Processamento Atômico
+    Processor -> Orders: Registra pedido
+    Processor -> AntiDup: Atualiza status: "PROCESSED" **<<Ponto de Não-Retorno>>**
+    Processor -> ProcessPurchases: Envia pagamento\n**+ correlation_id**
+end
+
+alt Sucesso
+    Processor -> OrderQueue: **Commit offset**\n(após conclusão)
+    Processor -> Processor: **Log/Métrica:**\nSucesso
+else Erro
+    Processor -> Processor: **Log/Métrica detalhada:**\n- Erro\n- Stack trace\n- Payload
+    alt retry_count < 3
+        Processor -> Processor: **Backoff exponencial**
         Processor -> OrderQueue: Reenfileira com delay
-    else Erro permanente
-        Processor -> DLQ: Envia mensagem
+    else
+        Processor -> DLQ: Envia mensagem **enriquecida:**\n- Payload original\n- Erro\n- Timestamps
         Processor -> OrderQueue: Commit offset
+        Processor -> Processor: **Notifica DLQ**
     end
 end
 
 deactivate Processor
+
+== Monitoramento ==
+
+Gateway -> Métricas: Prometheus/Grafana
+Processor -> Métricas: Prometheus/Grafana
+DLQ -> Monitor: Alerta Slack/Email
+
 @enduml

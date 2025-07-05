@@ -32,12 +32,12 @@ const kafka = new Kafka({
       replicationFactor: 1,
     },
     {
-      topic: "order_queue_dlq",
+      topic: "order_queue_dlq", // erro na fila de pedidos
       numPartitions: 2,
       replicationFactor: 1,
     },
     {
-      topic: "order_queue_consumer_dlq",
+      topic: "order_queue_consumer_dlq", // erro no consumidor de pedidos
       numPartitions: 2,
       replicationFactor: 1,
     },
