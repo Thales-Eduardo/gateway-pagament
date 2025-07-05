@@ -22,10 +22,7 @@ export async function producerProcessPurchess(
       ],
     });
 
-    console.log(
-      "Mensagem enviada com sucesso para o tópico purchases-processed",
-      metadata
-    );
+    console.log("purchases-processed", metadata);
 
     return metadata;
   } catch (error: any) {

@@ -2,7 +2,13 @@ import { InterfacePaymentRequestDtos } from "../../interfaces/paymentRequest.dto
 import { producerOrderQueue as producer } from "./index";
 import { producerPaymentRetry } from "./payment_retry";
 
-export async function producerOrderQueue(message: InterfacePaymentRequestDtos) {
+export async function producerOrderQueue({
+  message,
+  count = 0,
+}: {
+  message: InterfacePaymentRequestDtos;
+  count?: number;
+}) {
   try {
     // await producer.connect(); //desabilitar para testar
     const metadata = await producer.send({
@@ -13,7 +19,7 @@ export async function producerOrderQueue(message: InterfacePaymentRequestDtos) {
           value: JSON.stringify(message),
           headers: {
             origin: "my-producer-order_queue",
-            attempt: "0",
+            attempt: count.toString() || "0",
           },
         },
       ],
