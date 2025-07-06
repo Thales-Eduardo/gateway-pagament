@@ -5,7 +5,7 @@ export const producer = new Kafka().producer({
     brokers: ["localhost:9094"],
     ssl: false,
     acks: -1,
-    retry: { retries: 10 },
+    // retry: { retries: 10 },
     transactionTimeout: 60000,
   },
 });
@@ -15,7 +15,7 @@ export const producerPaymentRetry = new Kafka().producer({
     brokers: ["localhost:9094"],
     ssl: false,
     acks: -1,
-    retry: { retries: 10 },
+    // retry: { retries: 10 },
     transactionTimeout: 60000,
   },
 });

@@ -1,4 +1,4 @@
-@startuml payment_gateway_flow
+@startuml enhanced_payment_gateway_flow
 
 actor Cliente
 participant "API Gateway" as Gateway
@@ -6,11 +6,10 @@ database "Tabela Anti-Duplicação" as AntiDup
 queue "order_queue" as OrderQueue
 participant "Processador" as Processor
 database "Tabela Pedidos" as Orders
+database "Tabela Pagamentos\n(register_payment_request)" as Payments
 queue "process-purchases" as ProcessPurchases
-queue "purchases-processed" as PurchasesProcessed
 queue "payment_retry" as PaymentRetry
 queue "payment_dlq" as PaymentDLQ
-participant "Sistema de Monitoramento" as Monitoring
 
 Cliente -> Gateway: POST /pedido {user_id, itens}
 activate Gateway
@@ -38,29 +37,34 @@ AntiDup --> Processor: Status
 
 alt Status já é "PROCESSED"
     Processor -> Processor: **Ignora mensagem (idempotência)**
-    Processor -> Monitoring: metric_processed_duplicate_total++
     Processor --> OrderQueue: Commit offset
 else
     Processor -> Orders: Registra pedido
     Processor -> AntiDup: Atualiza status: "PROCESSED"
-    Processor -> ProcessPurchases: Envia pagamento\n**Headers:**\nretry_count=0, parent_id=message_id
-    Processor -> Monitoring: metric_processed_success_total++
+    
+    ' *** REGISTRO DE PAGAMENTO COM RETRY_COUNT ***
+    Processor -> Payments: Cria registro pagamento\n**retry_count=0**\nstatus="PENDING"
+    Processor -> ProcessPurchases: Envia pagamento\n**Headers:**\npayment_id=ID
     Processor -> OrderQueue: Commit offset
 end
 
 ...
 
-group Tratamento de Erros (Unificado)
+group Tratamento de Erros
     Processor -> Processor: Detectou erro\n(consumer/producer/pagamento)
-    Processor -> Processor: Obtém header\nretry_count (default=0)
+    
+    ' *** ATUALIZAÇÃO DO CONTADOR DE RETENTATIVAS ***
+    Processor -> Payments: Busca registro pagamento\n(payment_id)
+    Payments --> Processor: Registro com retry_count
+    Processor -> Payments: Atualiza retry_count = retry_count + 1
+    
     alt retry_count < MAX_RETRIES
-        Processor -> Processor: Incrementa retry_count\nNovo delay exponencial
-        Processor -> PaymentRetry: Publica com novo header\ne delay calculado
-        Processor -> Monitoring: metric_retry_total++
+        Processor -> Processor: Calcula delay exponencial\nbaseado em retry_count
+        Processor -> PaymentRetry: Publica com novo header\n**retry_count=novo_valor**
         Processor -> OrderQueue: Commit offset
     else
-        Processor -> PaymentDLQ: Publica mensagem\n**Headers:**\nerror_details=...
-        Processor -> Monitoring: metric_dlq_total++
+        Processor -> Payments: Atualiza status="FAILED"
+        Processor -> PaymentDLQ: Publica mensagem\n**com retry_count final**
         Processor -> OrderQueue: Commit offset
     end
 end
@@ -69,7 +73,15 @@ deactivate Processor
 
 ...
 
-PaymentRetry --> Processor: Mensagem re-agendada\n(após delay configurado)
-Processor -> Processor: Reprocessamento\nautomático
+PaymentRetry --> Processor: Mensagem re-agendada\n(após delay)
+activate Processor
+
+' *** FLUXO DE REPROCESSAMENTO ***
+Processor -> Payments: Busca registro\n(payment_id)
+Payments --> Processor: Dados pagamento + retry_count
+Processor -> Processor: Reprocessamento\ncom lógica específica\npara retentativas
+Processor -> ProcessPurchases: Reenvia pagamento\n**Headers:**\nretry_count=atual
+
+...
 
 @enduml

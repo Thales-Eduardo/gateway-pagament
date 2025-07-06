@@ -1,6 +1,6 @@
 # Gateway Payment
 
-Sistema de gateway de pagamentos distribuído, baseado em microsserviços, usei esse projeto para estudar implementação de Kafka e Kafka Connect. As APIs são POCs simples.
+Draft: Sistema de gateway de pagamentos distribuído, baseado em microsserviços, usei esse projeto para estudar implementação de Kafka e Kafka Connect. As APIs são POCs simples.
 
 <p align="center">
   <img src="docs/pagamento_aprovado.gif" alt="Fluxo de pagamento aprovado" width="600"/>
