@@ -1,7 +1,7 @@
 import { prismaClient } from "../connection";
 
 export class ProductRepository {
-  private readonly prismaClient: any;
+  private readonly prismaClient: typeof prismaClient;
 
   constructor() {
     this.prismaClient = prismaClient;
@@ -27,6 +27,17 @@ export class ProductRepository {
     return this.prismaClient.product.update({
       where: { id },
       data,
+    });
+  }
+
+  async updateQuantity(id: string, quantity: number) {
+    return this.prismaClient.product.update({
+      where: { id },
+      data: {
+        quantity: {
+          decrement: quantity,
+        },
+      },
     });
   }
 

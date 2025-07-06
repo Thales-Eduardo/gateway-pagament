@@ -37,7 +37,7 @@ describe("ProductRepository - Integration Tests", () => {
       expect(createdProduct.name).toBe(productData.name);
 
       // Corrigido: usando normalização para comparar valores decimais
-      expect(normalizeDecimal(createdProduct.price)).toBe(
+      expect(normalizeDecimal(createdProduct.price.toNumber())).toBe(
         normalizeDecimal(productData.price)
       );
       expect(createdProduct.quantity).toBe(productData.quantity);
@@ -66,11 +66,11 @@ describe("ProductRepository - Integration Tests", () => {
       expect(products[0].name).toBe(dados[0].name);
 
       // Corrigido: usando normalização
-      expect(normalizeDecimal(products[0].price)).toBe(
+      expect(normalizeDecimal(products[0].price.toNumber())).toBe(
         normalizeDecimal(dados[0].price)
       );
       expect(products[1].name).toBe(dados[1].name);
-      expect(normalizeDecimal(products[1].price)).toBe(
+      expect(normalizeDecimal(products[1].price.toNumber())).toBe(
         normalizeDecimal(dados[1].price)
       );
     });
@@ -109,7 +109,7 @@ describe("ProductRepository - Integration Tests", () => {
         name: updatedData.name,
         quantity: updatedData.quantity,
       });
-      expect(normalizeDecimal(updatedProduct.price)).toBe(
+      expect(normalizeDecimal(updatedProduct.price.toNumber())).toBe(
         normalizeDecimal(updatedData.price)
       );
 

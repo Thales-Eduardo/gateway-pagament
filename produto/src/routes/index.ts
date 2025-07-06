@@ -1,13 +1,16 @@
 import { Request, Response, Router } from "express";
 import { RepositoryElastic } from "../infra/database/elasticsearch/db/repository/repositoryElastic";
 import { ProductRepository } from "../infra/database/mysql/repository/ProductRepository";
+import { ReservedProductRepository } from "../infra/database/mysql/repository/ReservedProduct";
 import { CreateProductService } from "../services/CreateProduct.service";
+import { CreateReservedProductService } from "../services/CreateReservedProduct.service";
 import { FindAllProductService } from "../services/FindAllProduct.service";
 import { GetProductsByIdService } from "../services/GetProductsById.service";
 import { GetProductsByNameServicee } from "../services/GetProductsByName.service";
 
 const productRepository = new ProductRepository();
 const productRepositoryElastic = new RepositoryElastic();
+const reservedProductRepository = new ReservedProductRepository();
 
 export const router = Router();
 
@@ -58,4 +61,16 @@ router.post("/", async (req: Request, res: Response) => {
 
   await createProductService.execute();
   res.status(201).json({ message: "Products created successfully" });
+});
+
+router.post("/reserve", async (req: Request, res: Response) => {
+  const data = req.body;
+
+  const createProductService = new CreateReservedProductService(
+    reservedProductRepository,
+    productRepository
+  );
+
+  await createProductService.execute(data);
+  res.status(201).json({ message: "Reserved" });
 });

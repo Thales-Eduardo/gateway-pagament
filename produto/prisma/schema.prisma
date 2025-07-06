@@ -19,15 +19,15 @@ model Product {
   @@map("product")
 }
 
-// model Reservations {
-//   id          String   @id @default(uuid())
-//   products_id String
-//   user_id     String
-//   quantity    Int      @db.Int
-//   price_total Decimal  @db.Decimal(19, 4)
-//   status      Decimal  @db.Decimal(19, 4)
-//   created_at  DateTime @default(now())
-//   updated_at  DateTime @default(now()) @updatedAt
+model ReservedProduct {
+  id          String   @id @default(uuid())
+  products_id String
+  user_id     String
+  quantity    Int      @db.Int
+  price_total Decimal  @db.Decimal(19, 4)
+  status      Int      @db.Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
 
-//   @@map("reservations")
-// }
+  @@map("reserved_product")
+}
