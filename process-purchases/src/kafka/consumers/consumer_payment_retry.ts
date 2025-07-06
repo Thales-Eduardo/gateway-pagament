@@ -1,6 +1,7 @@
 import { EachMessagePayload } from "kafkajs";
 import { PaymentRepository } from "../../repository/PaymentRepository";
 import { RetryPagamentService } from "../../services/retryPagamentService";
+import { producerPaymentDLQ } from "../producers/producer-dlq";
 import { consumerPaymentRetry } from "./index";
 
 const retryService = new RetryPagamentService(new PaymentRepository());
@@ -34,18 +35,16 @@ export async function consumerPaymentRetryQueue() {
             await consumerPaymentRetry.commitOffsets([
               { topic, partition, offset: message.offset },
             ]);
-            console.log("adicionar dlq");
+            await producerPaymentDLQ(data);
             return;
           }
           if (result >= MAX_RETRY_COUNT) {
             await consumerPaymentRetry.commitOffsets([
               { topic, partition, offset: message.offset },
             ]);
-            // adicionar dlq
-            console.log("adicionar dlq");
+            await producerPaymentDLQ(data);
             return;
           }
-          await consumerPaymentRetryQueueData(data);
 
           await heartbeat();
 
@@ -53,25 +52,24 @@ export async function consumerPaymentRetryQueue() {
             { topic, partition, offset: message.offset },
           ]);
 
-          // await producerOrderQueue({ message: data, count: nextRetry });
+          await consumerPaymentRetryQueueData(data);
         } catch (error: any) {
           await heartbeat();
           console.error(
             `Erro no tópico ${topic}, partição ${partition}, offset ${message.offset}:`,
             error
           );
-          //enviar para dlq
-          //   await producerPaymentRetry({
-          //     originalTopic: "order_queue",
-          //     originalMessage: JSON.parse(message.value!.toString()),
-          //     error: {
-          //       name: error.name,
-          //       message: error.message,
-          //       stack: error.stack,
-          //       code: error.code,
-          //     },
-          //     timestamp: new Date().toISOString(),
-          //   });
+          await producerPaymentDLQ({
+            originalTopic: "payment_retry",
+            originalMessage: JSON.parse(message.value!.toString()),
+            error: {
+              name: error.name,
+              message: error.message,
+              stack: error.stack,
+              code: error.code,
+            },
+            timestamp: new Date().toISOString(),
+          });
         }
       },
 

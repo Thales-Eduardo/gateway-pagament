@@ -1,7 +1,5 @@
 # idempotência queue
 
-testar dlq
-criar uma estratégia de retentativa no topic de DLQ
 add jwt verificação
 
 - Antes de entrar na fila, devemos garantir que cada pedido de pagamento seja único.
