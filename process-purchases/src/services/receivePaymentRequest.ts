@@ -2,13 +2,43 @@
 import { AppErrors } from "../error/errors";
 import { InterfacePaymentRequestDtos } from "../interfaces/paymentRequest.dtos";
 import { producerOrderQueue } from "../kafka/producers/add-to-order-queue";
-import { PaymentRepository } from "../repository/PaymentRepository";
+import {
+  PaymentRepository,
+  StatusPayment,
+} from "../repository/PaymentRepository";
+import { ReservedProductRepository } from "../repository/ReservedProductRepository";
 import { Validator } from "../validation/validate.price";
+
+// produto: {
+//   product_id: string;
+//   user_id: string;
+//   price: number;
+//   quantity: number;
+//   total_price: number;
+// };
+
+// card: {
+//   card_number: string;
+//   card_exp_month: string;
+//   card_exp_year: string;
+//   card_security_code: string;
+// };
+
+// data: Date;
+
+// anti_duplication?: {
+//   id: string;
+//   user_id: string;
+//   processed: boolean;
+// };
 
 export class ReceivePaymentRequest extends Validator {
   private database: any = {};
 
-  constructor(private paymentRepository: PaymentRepository) {
+  constructor(
+    private paymentRepository: PaymentRepository,
+    private reservedProductRepository: ReservedProductRepository
+  ) {
     super();
   }
 
@@ -17,10 +47,20 @@ export class ReceivePaymentRequest extends Validator {
     card,
     data,
   }: InterfacePaymentRequestDtos): Promise<void> {
-    const findProduct = await this.paymentRepository.findbyIdProduct(
-      produto.product_id
-    );
-    if (!findProduct) throw new AppErrors("Produto não encontrado.");
+    const [findProduct, findProductReserved] = await Promise.all([
+      this.paymentRepository.findbyIdProduct(produto.product_id),
+      this.reservedProductRepository.findById(produto.reserve_id),
+    ]);
+    if (!findProduct || !findProductReserved) {
+      throw new AppErrors("Produto não encontrado.");
+    }
+
+    if (findProductReserved.status === StatusPayment.AUTHORIZED) {
+      throw new AppErrors("Seu pagamento já foi processado.");
+    }
+
+    findProduct.quantity = findProductReserved.quantity;
+
     this.database = findProduct;
     this.validate({
       database: this.database,

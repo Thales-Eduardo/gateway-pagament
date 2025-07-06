@@ -4,10 +4,12 @@ import {
   PaymentRepository,
   StatusPayment,
 } from "../../repository/PaymentRepository";
+import { ReservedProductRepository } from "../../repository/ReservedProductRepository";
 import { producerPaymentRetry } from "../producers/payment_retry";
 import { consumerPurchasesProcessed } from "./index";
 
 const paymentRepository = new PaymentRepository();
+const reservedProductRepository = new ReservedProductRepository();
 
 export async function consumerUserPurchasesProcessed() {
   try {
@@ -73,6 +75,11 @@ async function consumerUserPurchasesProcessedData(
   //atualizar o status do pedido de pagamento no banco de dados
   await paymentRepository.updatePaymentRequest({
     id_transaction: String(data.anti_duplication.id),
+    status: StatusPayment.AUTHORIZED,
+  });
+
+  await reservedProductRepository.updateStatusReservedProduct({
+    id: data.produto.reserve_id,
     status: StatusPayment.AUTHORIZED,
   });
 

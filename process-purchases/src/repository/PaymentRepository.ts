@@ -1,9 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import { DateTime } from "luxon";
-
-export const prismaClient = new PrismaClient({
-  // log: ['query'],
-});
+import { prismaClient } from "./index";
 
 interface RegisterPaymentRequestDTOs {
   produto: {
@@ -31,6 +27,12 @@ export enum StatusPayment {
 }
 
 export class PaymentRepository {
+  private readonly prismaClient: typeof prismaClient;
+
+  constructor() {
+    this.prismaClient = prismaClient;
+  }
+
   //melhorar qry at
   async createPaymentRequest({
     produto,
@@ -39,7 +41,7 @@ export class PaymentRepository {
     const nowBr = DateTime.fromJSDate(data, { zone: "America/Sao_Paulo" });
     const cutoffUtc = nowBr.minus({ minutes: 2 }).toUTC().toJSDate();
 
-    const existing = await prismaClient.registerPaymentRequest.findFirst({
+    const existing = await this.prismaClient.registerPaymentRequest.findFirst({
       where: {
         user_id: produto.user_id,
         product_id: produto.product_id,
@@ -52,16 +54,18 @@ export class PaymentRepository {
 
     if (existing) return false;
 
-    const createdRecord = await prismaClient.registerPaymentRequest.create({
-      data: {
-        user_id: produto.user_id,
-        product_id: produto.product_id,
-        price: produto.price,
-        total_price: produto.total_price,
-        quantity: produto.quantity,
-        status: StatusPayment.PENDING,
-      },
-    });
+    const createdRecord = await this.prismaClient.registerPaymentRequest.create(
+      {
+        data: {
+          user_id: produto.user_id,
+          product_id: produto.product_id,
+          price: produto.price,
+          total_price: produto.total_price,
+          quantity: produto.quantity,
+          status: StatusPayment.PENDING,
+        },
+      }
+    );
 
     return {
       id: createdRecord.id,
@@ -76,10 +80,12 @@ export class PaymentRepository {
     id_transaction: string;
     status: StatusPayment;
   }): Promise<any> {
-    const updatedRecord = await prismaClient.registerPaymentRequest.update({
-      where: { id: id_transaction },
-      data: { status: status },
-    });
+    const updatedRecord = await this.prismaClient.registerPaymentRequest.update(
+      {
+        where: { id: id_transaction },
+        data: { status: status },
+      }
+    );
 
     return updatedRecord;
   }
@@ -93,13 +99,15 @@ export class PaymentRepository {
     user_id: string;
     process: boolean;
   }): Promise<string> {
-    const createAntDuplication = await prismaClient.antiDuplication.create({
-      data: {
-        id_transaction,
-        user_id,
-        process: process,
-      },
-    });
+    const createAntDuplication = await this.prismaClient.antiDuplication.create(
+      {
+        data: {
+          id_transaction,
+          user_id,
+          process: process,
+        },
+      }
+    );
 
     return createAntDuplication.id_transaction;
   }
@@ -111,7 +119,7 @@ export class PaymentRepository {
     id_transaction: string;
     process: boolean;
   }): Promise<any> {
-    const updateResult = await prismaClient.antiDuplication.updateMany({
+    const updateResult = await this.prismaClient.antiDuplication.updateMany({
       where: {
         id_transaction: id_transaction,
       },
@@ -129,7 +137,7 @@ export class PaymentRepository {
   }
 
   async updateRetryCount(id_transaction: string): Promise<any> {
-    const updated = await prismaClient.registerPaymentRequest.update({
+    const updated = await this.prismaClient.registerPaymentRequest.update({
       where: {
         id: id_transaction,
       },
@@ -144,27 +152,27 @@ export class PaymentRepository {
   }
 
   async deleteAntDuplication() {
-    await prismaClient.antiDuplication.deleteMany();
+    await this.prismaClient.antiDuplication.deleteMany();
   }
 
   async deletePaymentRequest() {
-    await prismaClient.registerPaymentRequest.deleteMany();
+    await this.prismaClient.registerPaymentRequest.deleteMany();
   }
 
   async findPaymentRequest(id: string) {
-    return await prismaClient.registerPaymentRequest.findUnique({
+    return await this.prismaClient.registerPaymentRequest.findUnique({
       where: { id: id },
     });
   }
 
   async findAntiDuplication(id_transaction: string) {
-    return await prismaClient.antiDuplication.findUnique({
+    return await this.prismaClient.antiDuplication.findUnique({
       where: { id_transaction: id_transaction },
     });
   }
 
   async findbyIdProduct(product_id: string) {
-    const product = await prismaClient.product.findFirst({
+    const product = await this.prismaClient.product.findFirst({
       where: {
         id: product_id,
       },

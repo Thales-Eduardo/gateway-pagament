@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { PaymentRepository } from "../repository/PaymentRepository";
+import { ReservedProductRepository } from "../repository/ReservedProductRepository";
 import { ReceivePaymentRequest } from "../services/receivePaymentRequest";
 
 const receivePaymentRequest = new ReceivePaymentRequest(
-  new PaymentRepository()
+  new PaymentRepository(),
+  new ReservedProductRepository()
 );
 
 export const router = Router();
